@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { Edit3, Trash2, Save, X, Eye, EyeOff, ChevronDown, ChevronUp, Users, Mail, Linkedin, Twitter } from 'lucide-react';
+import { Edit3, Trash2, Eye, EyeOff, ChevronDown, ChevronUp, Users, Mail, Linkedin } from 'lucide-react';
 
 interface BoardDirector {
   id?: number;
@@ -31,7 +31,6 @@ const BoardDirectorList: React.FC<BoardDirectorListProps> = ({ refreshTrigger })
   const { token } = useAuth();
   const [directors, setDirectors] = useState<BoardDirector[]>([]);
   const [loading, setLoading] = useState(true);
-  const [editingDirector, setEditingDirector] = useState<BoardDirector | null>(null);
   const [expandedBios, setExpandedBios] = useState<Set<string>>(new Set());
 
   const fetchDirectors = async () => {
@@ -77,35 +76,6 @@ const BoardDirectorList: React.FC<BoardDirectorListProps> = ({ refreshTrigger })
     }
   };
 
-  const handleSaveEdit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    if (!editingDirector?.id && !editingDirector?._id) return;
-
-    const formData = new FormData(e.currentTarget);
-    const updateData = {
-      name: formData.get('name') as string,
-      position: formData.get('position') as string,
-      expertise: formData.get('expertise') as string,
-      profileImage: formData.get('profileImage') as string,
-    };
-
-    const directorId = editingDirector.id || editingDirector._id;
-
-    try {
-      await axios.put(`http://localhost:5000/api/board-directors/${directorId}`, updateData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      setEditingDirector(null);
-      fetchDirectors();
-      alert('Board director updated successfully!');
-    } catch (error: any) {
-      console.error('Error updating board director:', error);
-      alert('Failed to update board director. Please try again.');
-    }
-  };
 
   const handleToggleStatus = async (id: number | string, currentStatus: boolean) => {
     try {
@@ -123,13 +93,13 @@ const BoardDirectorList: React.FC<BoardDirectorListProps> = ({ refreshTrigger })
     }
   };
 
-  const toggleExpertise = (directorId: string) => {
+  const toggleBio = (directorId: string | number) => {
     setExpandedBios(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(directorId + '_expertise')) {
-        newSet.delete(directorId + '_expertise');
+      if (newSet.has(directorId.toString())) {
+        newSet.delete(directorId.toString());
       } else {
-        newSet.add(directorId + '_expertise');
+        newSet.add(directorId.toString());
       }
       return newSet;
     });
@@ -161,187 +131,134 @@ const BoardDirectorList: React.FC<BoardDirectorListProps> = ({ refreshTrigger })
           <p className="text-gray-600">No board directors found</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {directors.map((director) => (
-            <div key={director._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-2 p-6">
-              {editingDirector?._id === director._id ? (
-                <form onSubmit={handleSaveEdit} className="space-y-4">
-                  {/* Profile Image Preview */}
-                  <div className="flex justify-center mb-4">
-                    <div className="w-24 h-24">
-                      {director.profileImage || director.image ? (
-                        <img
-                          src={director.profileImage || director.image}
-                          alt={director.name}
-                          className="w-full h-full object-cover rounded-full shadow-medium"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-medium">
-                          {director.name.split(' ').map(n => n[0]).join('')}
-                        </div>
-                      )}
+            <div key={director.id || director._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-all transform hover:-translate-y-2 p-6">
+              {/* Profile Image */}
+              <div className="flex justify-center mb-4">
+                <div className="w-24 h-24">
+                  {director.profileImage || director.image ? (
+                    <img
+                      src={director.profileImage || director.image}
+                      alt={director.name}
+                      className="w-full h-full object-cover rounded-full shadow-medium"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-medium">
+                      {director.name.split(' ').map(n => n[0]).join('')}
                     </div>
-                  </div>
-                  
-                  <input
-                    name="name"
-                    defaultValue={director.name}
-                    placeholder="Full Name"
-                    className="w-full p-3 border rounded-md text-center font-semibold"
-                    required
-                  />
-                  <input
-                    name="position"
-                    defaultValue={director.position || director.role}
-                    placeholder="Position"
-                    className="w-full p-3 border rounded-md text-center"
-                    required
-                  />
-                  <textarea
-                    name="expertise"
-                    defaultValue={director.expertise}
-                    placeholder="Expertise Description"
-                    className="w-full p-3 border rounded-md h-32 resize-none"
-                    rows={4}
-                    required
-                  />
-                  <input
-                    name="profileImage"
-                    defaultValue={director.profileImage || director.image || ''}
-                    placeholder="Profile Image URL"
-                    className="w-full p-3 border rounded-md"
-                  />
-                  <div className="flex space-x-2 mt-4">
-                    <button
-                      type="submit"
-                      className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex-1"
-                    >
-                      <Save className="w-4 h-4 mr-2" />
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setEditingDirector(null)}
-                      className="flex items-center px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 flex-1"
-                    >
-                      <X className="w-4 h-4 mr-2" />
-                      Cancel
-                    </button>
-                  </div>
-                </form>
-              ) : (
-                <div className="text-center">
-                  {/* Profile Image */}
-                  <div className="mb-4">
-                    {director.profileImage || director.image ? (
-                      <img
-                        src={director.profileImage || director.image}
-                        alt={director.name}
-                        className="w-24 h-24 object-cover rounded-full mx-auto shadow-md"
-                      />
-                    ) : (
-                      <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto flex items-center justify-center">
-                        <span className="text-white text-lg font-bold">
-                          {director.name.split(' ').map(n => n[0]).join('')}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                  
-                  {/* Name and Position */}
-                  <h3 className="text-xl font-semibold mb-2 text-gray-900">{director.name}</h3>
-                  <div className="inline-block px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm mb-2">
-                    {director.position || director.role}
-                  </div>
-                  
-                  {/* Expertise */}
-                  {director.expertise && (
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-600">
-                        {expandedBios.has(director._id! + '_expertise') || director.expertise.length <= 100
-                          ? director.expertise
-                          : `${director.expertise.substring(0, 100)}...`
-                        }
-                      </p>
-                      {director.expertise.length > 100 && (
+                  )}
+                </div>
+              </div>
+
+              {/* Name and Position */}
+              <div className="text-center mb-4">
+                <h3 className="text-xl font-bold text-gray-900 mb-2">{director.name}</h3>
+                <p className="text-blue-600 font-medium text-lg">{director.position}</p>
+              </div>
+
+              {/* Bio */}
+              {director.bio && (
+                <div className="mb-4">
+                  <div className="text-gray-600 text-sm leading-relaxed text-center">
+                    {expandedBios.has((director.id || director._id)?.toString() || '') ? (
+                      <>
+                        {director.bio}
                         <button
-                          onClick={() => toggleExpertise(director._id!)}
-                          className="inline-flex items-center text-blue-600 hover:text-blue-800 text-sm mt-1 font-medium"
+                          type="button"
+                          onClick={() => toggleBio((director.id || director._id)?.toString() || '')}
+                          className="text-blue-600 hover:text-blue-800 ml-2 font-medium inline-flex items-center"
                         >
-                          {expandedBios.has(director._id! + '_expertise') ? (
-                            <>
-                              Read Less
-                              <ChevronUp className="w-4 h-4 ml-1" />
-                            </>
-                          ) : (
-                            <>
-                              Read More
-                              <ChevronDown className="w-4 h-4 ml-1" />
-                            </>
-                          )}
+                          Show Less <ChevronUp className="w-4 h-4 ml-1" />
                         </button>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Contact Links */}
-                  {(director.email || director.linkedin || director.phone) && (
-                    <div className="flex justify-center space-x-4 mb-4">
-                      {director.email && (
-                        <a href={`mailto:${director.email}`} className="text-blue-600 hover:text-blue-800">
-                          <Mail className="w-4 h-4" />
-                        </a>
-                      )}
-                      {director.linkedin && (
-                        <a href={director.linkedin} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800">
-                          <Linkedin className="w-4 h-4" />
-                        </a>
-                      )}
-                      {director.phone && (
-                        <a href={`tel:${director.phone}`} className="text-blue-600 hover:text-blue-800">
-                          <Twitter className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Status and Actions */}
-                  <div className="flex justify-between items-center pt-4 border-t border-gray-200">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => setEditingDirector(director)}
-                        className="flex items-center px-3 py-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                      >
-                        <Edit3 className="w-4 h-4 mr-1" />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => handleToggleStatus(director._id!, director.isActive ?? false)}
-                        className={`flex items-center px-3 py-1 rounded-md transition-colors ${
-                          director.isActive 
-                            ? 'text-red-600 hover:bg-red-50' 
-                            : 'text-green-600 hover:bg-green-50'
-                        }`}
-                      >
-                        {director.isActive ? <EyeOff className="w-4 h-4 mr-1" /> : <Eye className="w-4 h-4 mr-1" />}
-                        {director.isActive ? 'Deactivate' : 'Activate'}
-                      </button>
-                      <button
-                        onClick={() => handleDelete(director._id!, director.name)}
-                        className="flex items-center px-3 py-1 text-red-600 hover:bg-red-50 rounded-md transition-colors"
-                      >
-                        <Trash2 className="w-4 h-4 mr-1" />
-                        Delete
-                      </button>
-                    </div>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      director.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {director.isActive ? 'Active' : 'Inactive'}
-                    </span>
+                      </>
+                    ) : (
+                      <>
+                        {director.bio.length > 120 ? `${director.bio.substring(0, 120)}...` : director.bio}
+                        {director.bio.length > 120 && (
+                          <button
+                            type="button"
+                            onClick={() => toggleBio((director.id || director._id)?.toString() || '')}
+                            className="text-blue-600 hover:text-blue-800 ml-2 font-medium inline-flex items-center"
+                          >
+                            Read More <ChevronDown className="w-4 h-4 ml-1" />
+                          </button>
+                        )}
+                      </>
+                    )}
                   </div>
                 </div>
               )}
+
+              {/* Expertise */}
+              {director.expertise && (
+                <div className="mb-4">
+                  <h4 className="font-semibold text-gray-900 mb-2 text-center">Areas of Expertise</h4>
+                  <p className="text-gray-600 text-sm text-center leading-relaxed">{director.expertise}</p>
+                </div>
+              )}
+
+              {/* Contact Information */}
+              <div className="flex justify-center space-x-4 mb-4">
+                {director.email && (
+                  <a 
+                    href={`mailto:${director.email}`} 
+                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    title="Send Email"
+                  >
+                    <Mail className="w-5 h-5" />
+                  </a>
+                )}
+                {(director.linkedinUrl || director.linkedin) && (
+                  <a 
+                    href={director.linkedinUrl || director.linkedin} 
+                    target="_blank" 
+                    rel="noopener noreferrer" 
+                    className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200"
+                    title="LinkedIn Profile"
+                  >
+                    <Linkedin className="w-5 h-5" />
+                  </a>
+                )}
+              </div>
+
+              {/* Status Badge */}
+              <div className="flex justify-center mb-4">
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+                  director.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                }`}>
+                  {director.isActive ? 'Active' : 'Inactive'}
+                </span>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => alert('Edit functionality will be implemented in a separate form')}
+                  className="flex items-center justify-center px-3 py-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-all duration-200 font-medium border border-blue-200 hover:border-blue-300 text-sm"
+                >
+                  <Edit3 className="w-4 h-4 mr-2" />
+                  Edit Profile
+                </button>
+                <button
+                  onClick={() => handleToggleStatus((director.id || director._id)!, director.isActive ?? false)}
+                  className={`flex items-center justify-center px-3 py-2 rounded-lg transition-all duration-200 font-medium border text-sm ${
+                    director.isActive 
+                      ? 'text-red-600 hover:bg-red-50 border-red-200 hover:border-red-300' 
+                      : 'text-green-600 hover:bg-green-50 border-green-200 hover:border-green-300'
+                  }`}
+                >
+                  {director.isActive ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+                  {director.isActive ? 'Deactivate' : 'Activate'}
+                </button>
+                <button
+                  onClick={() => handleDelete((director.id || director._id)!, director.name)}
+                  className="flex items-center justify-center px-3 py-2 text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200 font-medium border border-red-200 hover:border-red-300 text-sm"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </button>
+              </div>
             </div>
           ))}
         </div>

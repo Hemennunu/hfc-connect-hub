@@ -3,7 +3,7 @@ import axios from 'axios';
 import ReadMore from '../components/ReadMore';
 
 interface CaseStory {
-  _id: string;
+  id: number;
   title: string;
   content: string;
   summary: string;
@@ -158,7 +158,7 @@ const CaseStories: React.FC = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Stories</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               {featuredStories.slice(0, 2).map((story) => (
-                <div key={story._id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-yellow-200">
+                <div key={story.id} className="bg-white rounded-xl shadow-lg overflow-hidden border border-yellow-200">
                   {renderMediaContent(story)}
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
@@ -232,7 +232,7 @@ const CaseStories: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredStories.map((story) => (
-              <div key={story._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+              <div key={story.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                 {story.mediaUrl && (
                   <div className="h-48 overflow-hidden">
                     {renderMediaContent(story)}

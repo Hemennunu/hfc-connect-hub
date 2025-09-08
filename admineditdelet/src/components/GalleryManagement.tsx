@@ -8,9 +8,13 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
     title: "",
     category: "Child Development",
     description: "",
-    mediaUrl: "",
-    mediaType: "photo",
+    location: "",
+    dateTaken: "",
+    tags: "",
+    featured: false,
+    status: "published",
   });
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
 
   const { token } = useAuth();
 
@@ -27,12 +31,36 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
     setGalleryData((prev) => ({ ...prev, [e.target.name]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setMediaFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!mediaFile) {
+      alert("Please select a media file to upload.");
+      return;
+    }
+    
     try {
-      await axios.post("http://localhost:5000/api/gallery", galleryData, {
+      const formData = new FormData();
+      formData.append('media', mediaFile);
+      formData.append('title', galleryData.title);
+      formData.append('description', galleryData.description);
+      formData.append('category', galleryData.category);
+      formData.append('location', galleryData.location);
+      formData.append('dateTaken', galleryData.dateTaken);
+      formData.append('tags', galleryData.tags);
+      formData.append('featured', galleryData.featured.toString());
+      formData.append('status', galleryData.status);
+      
+      await axios.post("http://localhost:5000/api/gallery", formData, {
         headers: {
           Authorization: `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data',
         },
       });
       alert("Gallery item added successfully!");
@@ -40,9 +68,13 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
         title: "",
         category: "Child Development",
         description: "",
-        mediaUrl: "",
-        mediaType: "photo",
+        location: "",
+        dateTaken: "",
+        tags: "",
+        featured: false,
+        status: "published",
       });
+      setMediaFile(null);
       onGalleryAdded();
     } catch (err) {
       alert("Failed to add gallery item.");
@@ -107,33 +139,72 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="space-y-3">
           <label className="block text-sm font-bold text-foreground">
-            Media URL
+            Location
           </label>
           <input
-            type="url"
-            name="mediaUrl"
-            placeholder="Enter image/video URL..."
-            value={galleryData.mediaUrl}
+            type="text"
+            name="location"
+            placeholder="Enter location..."
+            value={galleryData.location}
             onChange={handleChange}
-            required
             className="input h-12"
           />
         </div>
 
         <div className="space-y-3">
           <label className="block text-sm font-bold text-foreground">
-            Media Type
+            Date Taken
           </label>
-          <select
-            name="mediaType"
-            value={galleryData.mediaType}
+          <input
+            type="date"
+            name="dateTaken"
+            value={galleryData.dateTaken}
             onChange={handleChange}
             className="input h-12"
-          >
-            <option value="photo">Photo</option>
-            <option value="video">Video</option>
-          </select>
+          />
         </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="space-y-3">
+          <label className="block text-sm font-bold text-foreground">
+            Tags (comma-separated)
+          </label>
+          <input
+            type="text"
+            name="tags"
+            placeholder="Enter tags separated by commas..."
+            value={galleryData.tags}
+            onChange={handleChange}
+            className="input h-12"
+          />
+        </div>
+
+        <div className="space-y-3">
+          <label className="block text-sm font-bold text-foreground">
+            Media File
+          </label>
+          <input
+            type="file"
+            accept="image/*,video/*"
+            onChange={handleFileChange}
+            required
+            className="input h-12"
+          />
+        </div>
+      </div>
+
+      <div className="flex items-center space-x-4">
+        <label className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            name="featured"
+            checked={galleryData.featured}
+            onChange={handleChange}
+            className="rounded"
+          />
+          <span className="text-sm font-bold text-foreground">Featured Item</span>
+        </label>
       </div>
 
 

@@ -471,7 +471,7 @@ const AdminDashboard = () => {
           role: formData.get("role") as string,
           department: formData.get("department") as string,
           location: formData.get("location") as string,
-          contact: formData.get("contact") as string,
+          email: formData.get("contact") as string,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );

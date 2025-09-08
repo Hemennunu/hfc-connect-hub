@@ -27,11 +27,23 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded }
     setIsLoading(true);
 
     try {
-      console.log('Creating board director:', formData);
-      const response = await axios.post('http://localhost:5000/api/board-directors', formData, {
+      const submitData = new FormData();
+      submitData.append('name', formData.name);
+      submitData.append('position', formData.position);
+      submitData.append('expertise', formData.expertise);
+      
+      if (selectedFile) {
+        submitData.append('profileImage', selectedFile);
+      } else if (formData.profileImage && formData.profileImage.startsWith('http')) {
+        // If it's a URL, send it as profileImage field
+        submitData.append('profileImageUrl', formData.profileImage);
+      }
+
+      console.log('Creating board director with FormData');
+      const response = await axios.post('http://localhost:5000/api/board-directors', submitData, {
         headers: {
           'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'multipart/form-data'
         }
       });
       console.log('Board director created successfully:', response.data);
@@ -42,6 +54,7 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded }
         expertise: '',
         profileImage: ''
       });
+      setSelectedFile(null);
       onDirectorAdded();
     } catch (err: any) {
       console.error('Error creating board director:', err);

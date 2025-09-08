@@ -3,7 +3,7 @@ import axios from 'axios';
 import ReadMore from '../components/ReadMore';
 
 interface Report {
-  _id: string;
+  id: number;
   title: string;
   type: string;
   description: string;
@@ -41,7 +41,7 @@ const Reports: React.FC = () => {
     try {
       // Use the proper download endpoint that serves the file directly
       const link = document.createElement('a');
-      link.href = `http://localhost:5000/api/reports/${report._id}/download`;
+      link.href = `http://localhost:5000/api/reports/download/${report.id}`;
       link.download = report.fileName;
       document.body.appendChild(link);
       link.click();
@@ -49,7 +49,7 @@ const Reports: React.FC = () => {
 
       // Update local state
       setReports(reports.map(r => 
-        r._id === report._id 
+        r.id === report.id 
           ? { ...r, downloadCount: r.downloadCount + 1 }
           : r
       ));
@@ -138,7 +138,7 @@ const Reports: React.FC = () => {
             <h2 className="text-3xl font-bold text-gray-900 mb-8">Featured Reports</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredReports.map((report) => (
-                <div key={report._id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-yellow-200">
+                <div key={report.id} className="bg-white rounded-xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden border border-yellow-200">
                   <div className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <span className={`px-3 py-1 text-sm font-medium rounded-full ${getTypeColor(report.type)}`}>
@@ -218,7 +218,7 @@ const Reports: React.FC = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredReports.map((report) => (
-              <div key={report._id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+              <div key={report.id} className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 overflow-hidden">
                 <div className="p-6">
                   <div className="flex items-center justify-between mb-4">
                     <span className={`px-3 py-1 text-sm font-medium rounded-full ${getTypeColor(report.type)}`}>
