@@ -116,9 +116,18 @@ router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res
       return res.status(400).json({ message: 'Full name, email, graduation year, and current occupation are required' });
     }
 
+    let achievements = [];
+    if (req.body.achievements) {
+      try {
+        achievements = JSON.parse(req.body.achievements);
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid achievements format. Expected a JSON array.' });
+      }
+    }
+
     const alumniData = {
       ...req.body,
-      achievements: req.body.achievements ? JSON.parse(req.body.achievements) : [],
+      achievements,
       profileImage: req.file ? `/uploads/alumni/${req.file.filename}` : null,
       // Admin-created alumni are automatically approved and public
       consented: true,
@@ -176,9 +185,18 @@ router.put('/:id', auth, adminOnly, upload.single('profileImage'), async (req, r
       }
     }
     
+    let achievements = alumni.achievements;
+    if (req.body.achievements) {
+      try {
+        achievements = JSON.parse(req.body.achievements);
+      } catch (error) {
+        return res.status(400).json({ message: 'Invalid achievements format. Expected a JSON array.' });
+      }
+    }
+
     const updateData = {
       ...req.body,
-      achievements: req.body.achievements ? JSON.parse(req.body.achievements) : alumni.achievements
+      achievements
     };
     
     if (req.file) {

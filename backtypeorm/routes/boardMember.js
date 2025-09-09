@@ -3,6 +3,19 @@ const router = express.Router();
 const AppDataSource = require('../config/database');
 const BoardMember = require('../entities/BoardMember');
 const { auth, adminOnly } = require('../middleware/auth');
+const multer = require('multer');
+const path = require('path');
+
+// Multer config for board members
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    cb(null, 'uploads/boardMembers/');
+  },
+  filename: function(req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage });
 
 // GET /api/board-members - Get all board members (public route)
 router.get('/', async (req, res) => {
@@ -51,11 +64,22 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/board-members - Create new board member (protected route)
-router.post('/', auth, adminOnly, async (req, res) => {
+router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res) => {
   try {
     const boardMemberRepository = AppDataSource.getRepository(BoardMember);
-    
-    const newBoardMember = boardMemberRepository.create(req.body);
+    const { name, role, education, bio, linkedinProfile, order, isActive } = req.body;
+
+    const newBoardMember = boardMemberRepository.create({
+      name,
+      role,
+      education,
+      bio,
+      linkedinProfile,
+      order,
+      isActive,
+      profileImage: req.file ? `/uploads/boardMembers/${req.file.filename}` : null
+    });
+
     const savedBoardMember = await boardMemberRepository.save(newBoardMember);
     
     res.status(201).json(savedBoardMember);
@@ -66,7 +90,7 @@ router.post('/', auth, adminOnly, async (req, res) => {
 });
 
 // PUT /api/board-members/:id - Update board member (protected route)
-router.put('/:id', auth, adminOnly, async (req, res) => {
+router.put('/:id', auth, adminOnly, upload.single('profileImage'), async (req, res) => {
   try {
     const boardMemberRepository = AppDataSource.getRepository(BoardMember);
     
@@ -75,7 +99,12 @@ router.put('/:id', auth, adminOnly, async (req, res) => {
       return res.status(404).json({ message: 'Board member not found' });
     }
     
-    await boardMemberRepository.update(req.params.id, req.body);
+    const updateData = { ...req.body };
+    if (req.file) {
+      updateData.profileImage = `/uploads/boardMembers/${req.file.filename}`;
+    }
+
+    await boardMemberRepository.update(req.params.id, updateData);
     const updatedBoardMember = await boardMemberRepository.findOne({ where: { id: req.params.id } });
     
     res.json(updatedBoardMember);

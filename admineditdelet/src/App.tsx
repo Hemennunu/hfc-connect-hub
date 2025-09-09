@@ -30,10 +30,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     { path: '/admin/settings', label: 'Settings', icon: SettingsIcon },
   ];
 
-  // Debug navigation items
-  console.log('Navigation items:', navigationItems);
-  console.log('Stats Management item:', navigationItems.find(item => item.path === '/admin/stats'));
-  console.log('Total navigation items:', navigationItems.length);
+  
 
   const handleLogout = () => {
     logout();

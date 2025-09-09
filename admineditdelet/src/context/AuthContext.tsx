@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState } from 'react';
 type AuthContextType = {
   user: {role: string} | null;
   token: string | null;
+  
   login: (token: string, role: string) => void;
   logout: () => void;
 };

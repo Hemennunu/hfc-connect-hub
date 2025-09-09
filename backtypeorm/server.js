@@ -98,31 +98,15 @@ process.on('unhandledRejection', (reason, promise) => {
 // Start the server with TypeORM initialization
 const startServer = async () => {
   try {
-    console.log("Attempting to connect to database...");
-    console.log("Database config:", {
-      host: process.env.DB_HOST,
-      port: process.env.DB_PORT,
-      username: process.env.DB_USERNAME,
-      database: process.env.DB_NAME
-    });
-    
     await AppDataSource.initialize();
     console.log("Database connection established successfully");
     
     server.listen(PORT, () => {
       console.log(`Server started on port ${PORT}`);
-      console.log(`Backend API available at: http://localhost:${PORT}`);
     });
   } catch (error) {
     console.error("Failed to connect to database:", error);
-    console.error("Error details:", error.message);
-    
-    // Try to start server without database for debugging
-    console.log("Starting server without database connection for debugging...");
-    server.listen(PORT, () => {
-      console.log(`Server started on port ${PORT} (WITHOUT DATABASE)`);
-      console.log(`Backend API available at: http://localhost:${PORT}`);
-    });
+    process.exit(1);
   }
 };
 

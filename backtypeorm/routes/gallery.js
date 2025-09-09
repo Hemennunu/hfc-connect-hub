@@ -96,7 +96,7 @@ router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
       category,
       location,
       dateTaken: dateTaken ? new Date(dateTaken) : null,
-      tags,
+      tags: (typeof tags === 'string') ? JSON.parse(tags) : tags,
       featured: featured === 'true',
       status: status || 'published',
       createdBy: req.user.id
@@ -139,7 +139,7 @@ router.put('/:id', auth, adminOnly, upload.single('media'), async (req, res) => 
       category,
       location,
       dateTaken: dateTaken ? new Date(dateTaken) : null,
-      tags,
+      tags: (typeof tags === 'string') ? JSON.parse(tags) : tags,
       featured: featured === 'true',
       status: status || 'published'
     };

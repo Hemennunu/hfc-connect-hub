@@ -211,6 +211,11 @@ body {
   box-shadow: 0 0 0 3px rgb(30 136 229 / 0.1);
 }
 
+.input.pl-10::placeholder {
+  padding-left: 2.5rem;
+  opacity: 0.5;
+}
+
 /* Responsive Utilities */
 @media (max-width: 640px) {
   .btn-primary,

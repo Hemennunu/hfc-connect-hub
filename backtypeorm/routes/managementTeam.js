@@ -76,7 +76,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // POST /api/management-team - Create new management team member (protected route)
-router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res) => {
+router.post('/', auth, adminOnly, upload.single('image'), async (req, res) => {
   try {
     const managementTeamRepository = AppDataSource.getRepository(ManagementTeam);
     const { name, position, bio, expertise, email, phone, linkedinUrl, linkedin, department, profileImageUrl } = req.body;
@@ -112,7 +112,7 @@ router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res
 });
 
 // PUT /api/management-team/:id - Update management team member (protected route)
-router.put('/:id', auth, adminOnly, upload.single('profileImage'), async (req, res) => {
+router.put('/:id', auth, adminOnly, upload.single('image'), async (req, res) => {
   try {
     const managementTeamRepository = AppDataSource.getRepository(ManagementTeam);
     

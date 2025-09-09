@@ -75,51 +75,56 @@ const Login: React.FC = () => {
         <div className="card p-6 md:p-8 shadow-2xl">
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="relative">
+              <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${email === '' ? 'text-gray-400' : 'text-transparent'}`}>
+                <EmailIcon />
+              </div>
+              <input
+                type="email"
+                id="email"
+                placeholder=" "
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                required
+                className="input pl-12 peer"
+                disabled={isLoading}
+              />
+              <label
+                htmlFor="email"
+                className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-10"
+              >
                 Email Address
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                  <EmailIcon />
-                </div>
-                <input
-                  type="email"
-                  placeholder="Enter your email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  required
-                  className="input pl-10"
-                  disabled={isLoading}
-                />
-              </div>
             </div>
 
             {/* Password Field */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+            <div className="relative">
+              <div className={`absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none ${password === '' ? 'text-gray-400' : 'text-transparent'}`}>
+                <LockIcon />
+              </div>
+              <input
+                type="password"
+                id="password"
+                placeholder=" "
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                required
+                className="input pl-12 peer"
+                disabled={isLoading}
+              />
+              <label
+                htmlFor="password"
+                className="absolute text-sm text-gray-500 duration-300 transform -translate-y-4 scale-75 top-2 z-10 origin-[0] bg-white px-2 peer-focus:px-2 peer-focus:text-blue-600 peer-placeholder-shown:scale-100 peer-placeholder-shown:-translate-y-1/2 peer-placeholder-shown:top-1/2 peer-focus:top-2 peer-focus:scale-75 peer-focus:-translate-y-4 left-10"
+              >
                 Password
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
-                  <LockIcon />
-                </div>
-                <input
-                  type="password"
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={e => setPassword(e.target.value)}
-                  required
-                  className="input pl-10"
-                  disabled={isLoading}
-                />
-              </div>
             </div>
 
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <p className="text-red-600 text-sm font-medium">{error}</p>
+              <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4" role="alert">
+                <p className="font-bold">Error</p>
+                <p>{error}</p>
               </div>
             )}
 

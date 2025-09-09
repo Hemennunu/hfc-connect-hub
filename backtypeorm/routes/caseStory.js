@@ -87,8 +87,7 @@ router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
     let processedTags = null;
     if (tags) {
       if (typeof tags === 'string') {
-        // Split comma-separated string into array
-        processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        processedTags = JSON.parse(tags);
       } else if (Array.isArray(tags)) {
         processedTags = tags;
       }
@@ -137,7 +136,7 @@ router.put('/:id', auth, adminOnly, upload.single('media'), async (req, res) => 
     // Handle tags: convert string to array if needed
     let processedTags = tags;
     if (tags && typeof tags === 'string') {
-      processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      processedTags = JSON.parse(tags);
     }
     
     const updateData = {
