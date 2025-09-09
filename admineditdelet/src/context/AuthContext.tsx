@@ -16,6 +16,7 @@ export const AuthProvider: React.FC<{children:React.ReactNode}> = ({children}) =
   });
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('token');
+    
   });
 
   const login = (newToken:string, role:string) => {
