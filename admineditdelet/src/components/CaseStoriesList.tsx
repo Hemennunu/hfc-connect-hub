@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import ReadMore from './ReadMore';
+import { getCaseStories, deleteCaseStory, updateCaseStory } from '../services/api'; // Import API functions
 
 interface CaseStory {
   id: number;
@@ -12,7 +12,7 @@ interface CaseStory {
   location?: string;
   category: string;
   mediaUrl?: string;
-  mediaType: 'image' | 'video';
+  mediaType: 'image' | 'video' | 'text' | 'photo' | 'audio' | 'photo_essay'; // Added missing media types
   impact?: string;
   outcome?: string;
   dateRecorded?: string;
@@ -41,10 +41,17 @@ const CaseStoriesList: React.FC<CaseStoriesListProps> = ({ refreshTrigger }) => 
 
   const fetchStories = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/case-stories');
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setMessage('Authentication token not found. Please log in.');
+        setLoading(false);
+        return;
+      }
+      const response = await getCaseStories(token); // Use imported getCaseStories
       setStories(response.data);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching case stories:', error);
+      setMessage(error.response?.data?.message || 'Error fetching case stories. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -55,9 +62,11 @@ const CaseStoriesList: React.FC<CaseStoriesListProps> = ({ refreshTrigger }) => 
 
     try {
       const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/api/case-stories/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      if (!token) {
+        setMessage('Authentication token not found. Please log in.');
+        return;
+      }
+      await deleteCaseStory(id, token); // Use imported deleteCaseStory
       setStories(stories.filter(story => story.id !== id));
       setMessage('Case story deleted successfully');
     } catch (error: any) {
@@ -69,29 +78,64 @@ const CaseStoriesList: React.FC<CaseStoriesListProps> = ({ refreshTrigger }) => 
     setEditingStory(story);
   };
 
+  const handleUpdateFormData = async (formData: FormData) => {
+    if (!editingStory) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setMessage('Authentication token not found. Please log in.');
+        return;
+      }
+
+      // Process tags if they exist
+      const tagsValue = formData.get('tags') as string;
+      if (tagsValue) {
+        const tags = tagsValue.split(',').map(tag => tag.trim()).filter(tag => tag);
+        formData.set('tags', JSON.stringify(tags));
+      }
+
+      // Process featured checkbox
+      const featuredValue = formData.get('featured');
+      formData.set('featured', featuredValue === 'on' ? 'true' : 'false');
+
+      console.log('Sending update request with formData:', Object.fromEntries(formData.entries()));
+
+      const response = await updateCaseStory(editingStory.id, formData, token);
+
+      setStories(stories.map(story => 
+        story.id === editingStory.id ? response.data : story
+      ));
+      setEditingStory(null);
+      setMessage('Case story updated successfully');
+    } catch (error: any) {
+      console.error('Update error:', error);
+      setMessage(error.response?.data?.message || 'Error updating case story');
+    }
+  };
+
   const handleUpdate = async (updatedData: Partial<CaseStory>) => {
     if (!editingStory) return;
 
     try {
       const token = localStorage.getItem('token');
+      if (!token) {
+        setMessage('Authentication token not found. Please log in.');
+        return;
+      }
       const formData = new FormData();
       
       Object.entries(updatedData).forEach(([key, value]) => {
         if (value !== undefined) {
           if (key === 'tags' && Array.isArray(value)) {
-            formData.append(key, value.join(','));
+            formData.append(key, JSON.stringify(value)); // Stringify tags array
           } else {
             formData.append(key, value.toString());
           }
         }
       });
 
-      const response = await axios.put(`http://localhost:5000/api/case-stories/${editingStory.id}`, formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await updateCaseStory(editingStory.id, formData, token); // Use imported updateCaseStory
 
       setStories(stories.map(story => 
         story.id === editingStory.id ? response.data : story
@@ -256,17 +300,7 @@ const CaseStoriesList: React.FC<CaseStoriesListProps> = ({ refreshTrigger }) => 
             <form onSubmit={(e) => {
               e.preventDefault();
               const formData = new FormData(e.target as HTMLFormElement);
-              const tags = (formData.get('tags') as string).split(',').map(tag => tag.trim()).filter(tag => tag);
-              handleUpdate({
-                title: formData.get('title') as string,
-                summary: formData.get('summary') as string,
-                content: formData.get('content') as string,
-                beneficiaryName: formData.get('beneficiaryName') as string,
-                location: formData.get('location') as string,
-                impact: formData.get('impact') as string,
-                tags: tags,
-                featured: formData.get('featured') === 'on'
-              });
+              handleUpdateFormData(formData);
             }}>
               <div className="space-y-4">
                 <div>

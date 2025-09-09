@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import { createCaseStory } from '../services/api'; // Import API function
 
 interface CaseStoriesManagementProps {
   onStoryAdded: () => void;
@@ -58,7 +58,12 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
     const submitData = new FormData();
     
     Object.entries(formData).forEach(([key, value]) => {
-      submitData.append(key, value.toString());
+      if (key === 'tags') {
+        const tagsString = typeof value === 'string' ? value : '';
+        submitData.append(key, JSON.stringify(tagsString.split(',').map(tag => tag.trim()).filter(tag => tag)));
+      } else {
+        submitData.append(key, value.toString());
+      }
     });
     
     if (file) {
@@ -67,12 +72,16 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
 
     try {
       const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/case-stories', submitData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      if (!token) {
+        setMessage('Authentication token not found. Please log in.');
+        setLoading(false);
+        return;
+      }
+      
+      console.log('Form data being sent:', Object.fromEntries(submitData.entries()));
+      console.log('File being sent:', file);
+      
+      await createCaseStory(submitData, token); // Use imported createCaseStory
 
       setMessage('Case story created successfully!');
       setFormData({
@@ -115,6 +124,7 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
           {message}
         </div>
       )}
+      
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -184,15 +194,16 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-2">
-              Beneficiary Name
+              Beneficiary Name *
             </label>
             <input
               type="text"
               name="beneficiaryName"
               value={formData.beneficiaryName}
               onChange={handleInputChange}
+              required
               className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-              placeholder="Name of person/community (optional)"
+              placeholder="Name of person/community"
             />
           </div>
 

@@ -73,25 +73,55 @@ router.get('/:id', async (req, res) => {
 // POST /api/case-stories - Create new case story (protected route)
 router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
   try {
+    console.log('Create request body:', req.body);
+    console.log('Create request file:', req.file);
+    console.log('Create request user:', req.user);
+    
     const { title, content, summary, beneficiaryName, age, location, category, impact, outcome, dateRecorded, publishDate, tags, featured, status } = req.body;
     
     // Validate required fields
     if (!title || !content || !beneficiaryName || !category) {
+      console.log('Validation failed - missing required fields');
       return res.status(400).json({ message: 'Title, content, beneficiary name, and category are required' });
     }
     
     const mediaUrl = req.file ? `/uploads/caseStories/${req.file.filename}` : null;
-    const mediaType = req.file ? (req.file.mimetype && req.file.mimetype.startsWith('video/') ? 'video' : 'image') : 'image';
+    const mediaType = req.file ? (req.file.mimetype && req.file.mimetype.startsWith('video/') ? 'video' : 'image') : (req.body.mediaType || 'text');
 
     // Handle tags: convert string to array if needed
     let processedTags = null;
     if (tags) {
       if (typeof tags === 'string') {
-        processedTags = JSON.parse(tags);
+        try {
+          processedTags = JSON.parse(tags);
+        } catch (e) {
+          // If JSON parsing fails, treat as comma-separated string
+          processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+        }
       } else if (Array.isArray(tags)) {
         processedTags = tags;
       }
     }
+
+    console.log('Processed data:', {
+      title,
+      content,
+      summary,
+      beneficiaryName,
+      age: age ? parseInt(age) : null,
+      location,
+      category,
+      mediaUrl,
+      mediaType,
+      impact,
+      outcome,
+      dateRecorded: dateRecorded ? new Date(dateRecorded) : null,
+      publishDate: publishDate ? new Date(publishDate) : null,
+      tags: processedTags,
+      featured: featured === 'true' || featured === true,
+      status: status || 'published',
+      createdBy: req.user ? req.user.id : null
+    });
 
     const caseStoryRepository = AppDataSource.getRepository(CaseStory);
     const newCaseStory = caseStoryRepository.create({
@@ -109,12 +139,21 @@ router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
       dateRecorded: dateRecorded ? new Date(dateRecorded) : null,
       publishDate: publishDate ? new Date(publishDate) : null,
       tags: processedTags,
-      featured: (typeof featured === 'string') ? featured === 'true' : !!featured,
+      featured: featured === 'true' || featured === true,
       status: status || 'published',
-      createdBy: req.user.id
+      createdBy: req.user ? req.user.id : null
     });
     
+    console.log('About to save case story:', newCaseStory);
+    
+    // Check if AppDataSource is initialized
+    if (!AppDataSource.isInitialized) {
+      console.log('Database not initialized, attempting to initialize...');
+      await AppDataSource.initialize();
+    }
+    
     const savedCaseStory = await caseStoryRepository.save(newCaseStory);
+    console.log('Case story saved successfully:', savedCaseStory);
 
     // Emit socket event for real-time updates
     if (req.io) {
@@ -124,19 +163,36 @@ router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
     res.status(201).json(savedCaseStory);
   } catch (error) {
     console.error('Error creating case story:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
 
 // PUT /api/case-stories/:id - Update case story (protected route)
 router.put('/:id', auth, adminOnly, upload.single('media'), async (req, res) => {
   try {
+    console.log('Update request body:', req.body);
+    console.log('Update request file:', req.file);
+    console.log('Update request params:', req.params);
+    
     const { title, content, summary, beneficiaryName, age, location, category, impact, outcome, dateRecorded, publishDate, tags, featured, status } = req.body;
+    
+    // Parse ID as integer for TypeORM
+    const caseStoryId = parseInt(req.params.id);
+    if (isNaN(caseStoryId)) {
+      return res.status(400).json({ message: 'Invalid case story ID' });
+    }
     
     // Handle tags: convert string to array if needed
     let processedTags = tags;
     if (tags && typeof tags === 'string') {
-      processedTags = JSON.parse(tags);
+      try {
+        processedTags = JSON.parse(tags);
+      } catch (e) {
+        // If JSON parsing fails, treat as comma-separated string
+        processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      }
     }
     
     const updateData = {
@@ -162,14 +218,16 @@ router.put('/:id', auth, adminOnly, upload.single('media'), async (req, res) => 
       updateData.mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
     }
 
+    console.log('Update data to be saved:', updateData);
+
     const caseStoryRepository = AppDataSource.getRepository(CaseStory);
-    const caseStory = await caseStoryRepository.findOne({ where: { id: req.params.id } });
+    const caseStory = await caseStoryRepository.findOne({ where: { id: caseStoryId } });
     if (!caseStory) {
       return res.status(404).json({ message: 'Case story not found' });
     }
     
-    await caseStoryRepository.update(req.params.id, updateData);
-    const updatedCaseStory = await caseStoryRepository.findOne({ where: { id: req.params.id } });
+    await caseStoryRepository.update(caseStoryId, updateData);
+    const updatedCaseStory = await caseStoryRepository.findOne({ where: { id: caseStoryId } });
 
     // Emit socket event for real-time updates
     if (req.io) {
@@ -179,7 +237,9 @@ router.put('/:id', auth, adminOnly, upload.single('media'), async (req, res) => 
     res.json(updatedCaseStory);
   } catch (error) {
     console.error('Error updating case story:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error details:', error.message);
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ message: 'Server error: ' + error.message });
   }
 });
 
