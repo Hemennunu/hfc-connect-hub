@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "start-all": "concurrently \"npm run dev --prefix backtypeorm\" \"npm run dev --prefix admineditdelet\" \"npm run dev --prefix hfc_client\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1"
+  }
+}
