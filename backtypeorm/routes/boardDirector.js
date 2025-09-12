@@ -1,10 +1,18 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
+const axios = require('axios');
 const router = express.Router();
 const AppDataSource = require('../config/database');
 const BoardDirector = require('../entities/BoardDirector');
 const { auth, adminOnly } = require('../middleware/auth');
+
+// Ensure the upload directory exists
+const uploadDir = path.join(__dirname, '../uploads/boardDirectors');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Configure multer for profile image uploads
 const storage = multer.diskStorage({
@@ -19,7 +27,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ 
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
   fileFilter: (req, file, cb) => {
     if (file.mimetype.startsWith('image/')) {
       cb(null, true);
@@ -78,15 +86,18 @@ router.get('/:id', async (req, res) => {
 router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res) => {
   try {
     const boardDirectorRepository = AppDataSource.getRepository(BoardDirector);
-    const { name, position, role, bio, expertise, email, phone, linkedinUrl, linkedin, profileImageUrl } = req.body;
+    const { name, position, role, bio, expertise, email, phone, linkedinUrl, profileImageUrl } = req.body;
     
     if (!name || !position) {
       return res.status(400).json({ message: 'Name and position are required' });
     }
     
-    const finalProfileImageUrl = req.file 
-      ? `/uploads/boardDirectors/${req.file.filename}` 
-      : (profileImageUrl || null);
+    let finalProfileImageUrl = null;
+    if (req.file) {
+      finalProfileImageUrl = req.file.filename;
+    } else if (profileImageUrl) {
+      finalProfileImageUrl = profileImageUrl;
+    }
     
     const newBoardDirector = boardDirectorRepository.create({
       name,
@@ -96,7 +107,7 @@ router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res
       expertise,
       email,
       phone,
-      linkedinUrl: linkedinUrl || linkedin,
+      linkedinUrl,
       profileImage: finalProfileImageUrl,
       isActive: true,
       order: 0
@@ -111,7 +122,7 @@ router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res
 });
 
 // PUT /api/board-directors/:id - Update board director (protected route)
-router.put('/:id', auth, adminOnly, async (req, res) => {
+router.put('/:id', auth, adminOnly, upload.single('profileImage'), async (req, res) => {
   try {
     const boardDirectorRepository = AppDataSource.getRepository(BoardDirector);
     
@@ -120,7 +131,27 @@ router.put('/:id', auth, adminOnly, async (req, res) => {
       return res.status(404).json({ message: 'Board director not found' });
     }
     
-    await boardDirectorRepository.update(req.params.id, req.body);
+    const updateData = {};
+    if (req.body.name) updateData.name = req.body.name;
+    if (req.body.position) updateData.position = req.body.position;
+    if (req.body.role) updateData.role = req.body.role;
+    if (req.body.bio) updateData.bio = req.body.bio;
+    if (req.body.expertise) updateData.expertise = req.body.expertise;
+    if (req.body.email) updateData.email = req.body.email;
+    if (req.body.phone) updateData.phone = req.body.phone;
+    if (req.body.linkedinUrl) updateData.linkedinUrl = req.body.linkedinUrl;
+    if (req.body.isActive !== undefined) updateData.isActive = req.body.isActive;
+    if (req.body.order) updateData.order = req.body.order;
+
+    if (req.file) {
+      updateData.profileImage = req.file.filename;
+    } else if (req.body.profileImageUrl && req.body.profileImageUrl !== boardDirector.profileImage) {
+      updateData.profileImage = req.body.profileImageUrl;
+    } else if (req.body.profileImageUrl === '') {
+      updateData.profileImage = null; // Clear the image if an empty string is sent
+    }
+
+    await boardDirectorRepository.update(req.params.id, updateData);
     const updatedBoardDirector = await boardDirectorRepository.findOne({ where: { id: req.params.id } });
     
     res.json(updatedBoardDirector);

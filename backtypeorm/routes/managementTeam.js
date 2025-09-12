@@ -1,10 +1,17 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const router = express.Router();
 const AppDataSource = require('../config/database');
 const ManagementTeam = require('../entities/ManagementTeam');
 const { auth, adminOnly } = require('../middleware/auth');
+
+// Ensure the upload directory exists
+const uploadDir = path.join(__dirname, '../uploads/managementTeam');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Configure multer for profile image uploads
 const storage = multer.diskStorage({
@@ -85,9 +92,12 @@ router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res
       return res.status(400).json({ message: 'Name and position are required' });
     }
     
-    const finalProfileImageUrl = req.file 
-      ? `/uploads/managementTeam/${req.file.filename}` 
-      : (profileImageUrl || null);
+    let finalImageUrl = null;
+    if (req.file) {
+      finalImageUrl = req.file.filename; // Store only filename for local uploads
+    } else if (profileImageUrl) {
+      finalImageUrl = profileImageUrl; // Store URL directly for external images
+    }
     
     const newManagementMember = managementTeamRepository.create({
       name,
@@ -98,7 +108,7 @@ router.post('/', auth, adminOnly, upload.single('profileImage'), async (req, res
       phone,
       linkedinUrl: linkedinUrl || linkedin,
       department,
-      image: finalProfileImageUrl,
+      image: finalImageUrl, // Use 'image' field
       isActive: true,
       order: 0
     });
@@ -125,13 +135,21 @@ router.put('/:id', auth, adminOnly, upload.single('profileImage'), async (req, r
     
     // Handle image upload
     if (req.file) {
-      updateData.image = `/uploads/managementTeam/${req.file.filename}`;
-    } else if (req.body.profileImageUrl) {
-      updateData.image = req.body.profileImageUrl;
+      updateData.image = req.file.filename; // Store only filename for local uploads
+    } else if (req.body.profileImageUrl && req.body.profileImageUrl !== managementMember.image) {
+      updateData.image = req.body.profileImageUrl; // Store URL directly for external images
+    } else if (req.body.profileImageUrl === '') {
+      updateData.image = null; // Clear the image if an empty string is sent
     }
     
-    // Clean up the update data
+    // Ensure 'linkedinUrl' is correctly mapped from 'linkedin' if 'linkedinUrl' is not provided
+    if (req.body.linkedin && !req.body.linkedinUrl) {
+      updateData.linkedinUrl = req.body.linkedin;
+    }
+
+    // Clean up the update data (remove transient fields)
     delete updateData.profileImageUrl;
+    delete updateData.linkedin; // Remove if linkedinUrl is preferred
     
     await managementTeamRepository.update(req.params.id, updateData);
     const updatedManagementMember = await managementTeamRepository.findOne({ where: { id: req.params.id } });

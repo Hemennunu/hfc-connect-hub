@@ -137,7 +137,7 @@ const AlumniList: React.FC<AlumniListProps> = ({ onEdit, onDelete, onApprove, re
                 <div className="flex items-center space-x-2">
                   {person.profileImage ? (
                     <img
-                      src={`http://localhost:5000/uploads/alumni/${person.profileImage}`}
+                                            src={`http://localhost:5000/uploads/alumni/${person.profileImage}?t=${person.updatedAt ? new Date(person.updatedAt).getTime() : new Date().getTime()}`}
                       alt={person.name}
                       className="w-12 h-12 rounded-full object-cover"
                     />

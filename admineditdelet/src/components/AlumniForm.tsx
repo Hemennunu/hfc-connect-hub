@@ -116,9 +116,6 @@ const AlumniForm: React.FC<AlumniFormProps> = ({ alumni, onSubmit, onClose, isLo
     Object.entries(formData).forEach(([key, value]) => {
       if (key === 'achievements') {
         submitData.append(key, JSON.stringify(value));
-      } else if (key === 'name') {
-        // Backend expects 'fullName' instead of 'name'
-        submitData.append('fullName', value.toString());
       } else if (value !== undefined && value !== null) {
         submitData.append(key, value.toString());
       }

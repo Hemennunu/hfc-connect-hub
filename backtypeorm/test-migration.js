@@ -9,25 +9,28 @@ let authToken = '';
 // Test configuration
 const testConfig = {
   adminCredentials: {
-    email: 'admin@hfc.org',
-    password: 'admin123'
+    email: 'hello@gmail.com',
+    password: '123456'
   }
 };
 
 // Helper function to make authenticated requests
-const makeRequest = async (method, url, data = null, headers = {}) => {
+const makeRequest = async (method, url, data = null, headers = {}, isFormData = false) => {
   try {
     const config = {
       method,
       url: `${BASE_URL}${url}`,
       headers: {
         'Authorization': authToken ? `Bearer ${authToken}` : '',
-        'Content-Type': 'application/json',
         ...headers
       }
     };
-    
-    if (data) {
+
+    if (isFormData) {
+      config.headers['Content-Type'] = `multipart/form-data; boundary=${data._boundary}`;
+      config.data = data;
+    } else if (data) {
+      config.headers['Content-Type'] = 'application/json';
       config.data = data;
     }
     
@@ -46,7 +49,7 @@ const makeRequest = async (method, url, data = null, headers = {}) => {
 const testAuth = async () => {
   console.log('\n🔐 Testing Authentication...');
   
-  const loginResult = await makeRequest('POST', '/auth/login', testConfig.adminCredentials);
+  const loginResult = await makeRequest('POST', '/auth/signin', testConfig.adminCredentials);
   
   if (loginResult.success && loginResult.data.token) {
     authToken = loginResult.data.token;
@@ -92,6 +95,7 @@ const testCaseStories = async () => {
     title: 'Test Success Story',
     content: 'This is a test case story for migration verification.',
     summary: 'Test story summary',
+    beneficiaryName: 'Test Beneficiary',
     category: 'education',
     status: 'published',
     featured: true
@@ -134,15 +138,15 @@ const testGallery = async () => {
   console.log(getResult.success ? '✅ GET gallery successful' : '❌ GET gallery failed:', getResult.error);
   
   // Test POST new gallery item
-  const newGalleryItem = {
-    title: 'Test Gallery Item',
-    description: 'Test gallery item for migration verification',
-    category: 'events',
-    status: 'published',
-    featured: true
-  };
+  const form = new FormData();
+  form.append('title', 'Test Gallery Item');
+  form.append('description', 'Test gallery item for migration verification');
+  form.append('category', 'events');
+  form.append('status', 'published');
+  form.append('featured', 'true');
+  form.append('media', fs.createReadStream(path.join(__dirname, 'dummy.png')), 'dummy.png');
   
-  const postResult = await makeRequest('POST', '/gallery', newGalleryItem);
+  const postResult = await makeRequest('POST', '/gallery', form, {}, true);
   console.log(postResult.success ? '✅ POST gallery item successful' : '❌ POST gallery item failed:', postResult.error);
   
   return postResult.success ? postResult.data.id : null;
@@ -157,14 +161,16 @@ const testAlumni = async () => {
   
   // Test POST new alumni
   const newAlumni = {
-    name: 'Test Alumni',
+    fullName: 'Test Alumni',
     email: 'alumni@test.com',
     graduationYear: 2020,
     program: 'Computer Science',
-    currentPosition: 'Software Developer',
+    currentOccupation: 'Software Developer',
     company: 'Tech Corp',
-    consentGiven: true,
-    isPublic: true
+    consented: true,
+    isPublic: true,
+    yearsInProgram: '2018-2020',
+    successStory: 'Test success story.'
   };
   
   const postResult = await makeRequest('POST', '/alumni', newAlumni);
@@ -184,13 +190,15 @@ const testProjects = async () => {
   const newProject = {
     title: 'Test Project',
     description: 'Test project for migration verification',
-    category: 'education',
+    category: 'Education',
     status: 'active',
     priority: 'high',
-    budget: 10000.00,
+    budget: 10000,
     startDate: '2024-01-01',
     endDate: '2024-12-31',
-    featured: true
+    featured: true,
+    location: 'Test Location',
+    beneficiaries: '100'
   };
   
   const postResult = await makeRequest('POST', '/projects', newProject);
@@ -261,7 +269,8 @@ const testDonations = async () => {
     email: 'donor@test.com',
     amount: 100.00,
     message: 'Test donation for migration verification',
-    isAnonymous: false
+    isAnonymous: false,
+    donationType: 'one-time'
   };
   
   // Remove auth token for public donation

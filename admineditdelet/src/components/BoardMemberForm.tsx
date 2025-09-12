@@ -3,18 +3,19 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { Users, Upload } from 'lucide-react';
 
-interface BoardDirectorFormProps {
-  onDirectorAdded: () => void;
-  director?: any;
-  onDirectorUpdated: (id: number, data: FormData) => void;
+interface BoardMemberFormProps {
+  onMemberAdded: () => void;
+  member?: any;
+  onMemberUpdated: (id: number, data: FormData) => void;
 }
 
-const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, director, onDirectorUpdated }) => {
+const BoardMemberForm: React.FC<BoardMemberFormProps> = ({ onMemberAdded, member, onMemberUpdated }) => {
   const { token } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
-    position: '',
-    expertise: '',
+    role: '',
+    education: '',
+    bio: '',
     profileImage: ''
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -23,15 +24,16 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
   const [success, setSuccess] = useState('');
 
   useEffect(() => {
-    if (director) {
+    if (member) {
       setFormData({
-        name: director.name || '',
-        position: director.position || '',
-        expertise: director.expertise || '',
-        profileImage: director.profileImage || ''
+        name: member.name || '',
+        role: member.role || '',
+        education: member.education || '',
+        bio: member.bio || '',
+        profileImage: member.profileImage || ''
       });
     }
-  }, [director]);
+  }, [member]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,41 +44,38 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
     try {
       const submitData = new FormData();
       submitData.append('name', formData.name);
-      submitData.append('position', formData.position);
-      submitData.append('expertise', formData.expertise);
+      submitData.append('role', formData.role);
+      submitData.append('education', formData.education);
+      submitData.append('bio', formData.bio);
       
       if (selectedFile) {
         submitData.append('profileImage', selectedFile);
-      } else if (formData.profileImage) {
-        submitData.append('profileImageUrl', formData.profileImage);
       }
 
-      if (director) {
-        await onDirectorUpdated(director.id, submitData);
-        setSuccess(`Board director "${formData.name}" updated successfully!`);
+      if (member) {
+        await onMemberUpdated(member.id, submitData);
+        setSuccess(`Board member "${formData.name}" updated successfully!`);
       } else {
-        console.log('Creating board director with FormData');
-        const response = await axios.post('http://localhost:5000/api/board-directors', submitData, {
+        const response = await axios.post('http://localhost:5000/api/board-members', submitData, {
           headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'multipart/form-data'
           }
         });
-        console.log('Board director created successfully:', response.data);
-        setSuccess(`Board director "${formData.name}" added successfully!`);
+        setSuccess(`Board member "${formData.name}" added successfully!`);
       }
 
       setFormData({
         name: '',
-        position: '',
-        expertise: '',
+        role: '',
+        education: '',
+        bio: '',
         profileImage: ''
       });
       setSelectedFile(null);
-      onDirectorAdded();
+      onMemberAdded();
     } catch (err: any) {
-      console.error('Error saving board director:', err);
-      setError(err.response?.data?.message || 'Failed to save board director');
+      setError(err.response?.data?.message || 'Failed to save board member');
     } finally {
       setIsLoading(false);
     }
@@ -94,7 +93,6 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
     const file = e.target.files?.[0];
     if (file) {
       setSelectedFile(file);
-      // Create preview URL
       const reader = new FileReader();
       reader.onload = (event) => {
         setFormData(prev => ({
@@ -113,13 +111,12 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
           <Users className="w-6 h-6 text-primary-foreground" />
         </div>
         <div>
-          <h3 className="text-2xl font-bold text-foreground">{director ? 'Edit Board Director' : 'Add Board Director'}</h3>
-          <p className="text-muted-foreground">{director ? 'Edit the details of the board director' : 'Add a new member to the board of directors'}</p>
+          <h3 className="text-2xl font-bold text-foreground">{member ? 'Edit Board Member' : 'Add Board Member'}</h3>
+          <p className="text-muted-foreground">{member ? 'Edit the details of the board member' : 'Add a new member to the board'}</p>
         </div>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Profile Image Preview */}
         <div className="flex justify-center mb-6">
           <div className="w-32 h-32">
             {formData.profileImage ? (
@@ -137,7 +134,6 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
         </div>
 
         <div className="grid grid-cols-1 gap-6">
-          {/* Name */}
           <div className="space-y-3">
             <label className="block text-sm font-bold text-foreground">
               Full Name *
@@ -154,44 +150,52 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
             />
           </div>
 
-          {/* Position */}
           <div className="space-y-3">
             <label className="block text-sm font-bold text-foreground">
-              Position *
+              Role *
             </label>
             <input
               type="text"
-              name="position"
-              value={formData.position}
+              name="role"
+              value={formData.role}
               onChange={handleChange}
-              placeholder="e.g., Chairperson, Executive Director"
+              placeholder="e.g., Chairperson, Member"
               required
               className="input h-12"
               disabled={isLoading}
             />
           </div>
 
-          {/* Expertise Description */}
           <div className="space-y-3">
             <label className="block text-sm font-bold text-foreground">
-              Expertise Description *
+              Education
             </label>
             <textarea
-              name="expertise"
-              value={formData.expertise}
+              name="education"
+              value={formData.education}
               onChange={handleChange}
-              placeholder="Describe their expertise, background, and qualifications..."
+              placeholder="Describe their education..."
               rows={4}
-              required
               className="input resize-none"
               disabled={isLoading}
             />
-            <p className="text-xs text-muted-foreground">
-              This will show with a "Read More" button if it's long
-            </p>
           </div>
 
-          {/* Profile Image Upload */}
+          <div className="space-y-3">
+            <label className="block text-sm font-bold text-foreground">
+              Bio
+            </label>
+            <textarea
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              placeholder="A short bio..."
+              rows={4}
+              className="input resize-none"
+              disabled={isLoading}
+            />
+          </div>
+
           <div className="space-y-3">
             <label className="block text-sm font-bold text-foreground">
               Profile Image
@@ -218,36 +222,21 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
                 </span>
               )}
             </div>
-            <input
-              type="url"
-              name="profileImage"
-              value={formData.profileImage}
-              onChange={handleChange}
-              placeholder="Or paste image URL here..."
-              className="input h-12"
-              disabled={isLoading}
-            />
-            <p className="text-xs text-muted-foreground">
-              Choose a file from your computer or paste an image URL
-            </p>
           </div>
         </div>
 
-        {/* Error Message */}
         {error && (
           <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4">
             <p className="text-destructive font-medium">{error}</p>
           </div>
         )}
 
-        {/* Success Message */}
         {success && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <p className="text-green-700 font-medium">{success}</p>
           </div>
         )}
 
-        {/* Submit Button */}
         <div className="flex justify-end">
           <button
             type="submit"
@@ -257,12 +246,12 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
             {isLoading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                {director ? 'Updating Director...' : 'Adding Director...'}
+                {member ? 'Updating Member...' : 'Adding Member...'}
               </>
             ) : (
               <>
                 <Users className="w-4 h-4 mr-2" />
-                {director ? 'Update Board Director' : 'Add Board Director'}
+                {member ? 'Update Board Member' : 'Add Board Member'}
               </>
             )}
           </button>
@@ -272,4 +261,4 @@ const BoardDirectorForm: React.FC<BoardDirectorFormProps> = ({ onDirectorAdded, 
   );
 };
 
-export default BoardDirectorForm;
+export default BoardMemberForm;

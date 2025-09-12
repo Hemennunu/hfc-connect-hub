@@ -19,6 +19,8 @@ import BoardDirectorForm from '../../components/BoardDirectorForm';
 import BoardDirectorList from '../../components/BoardDirectorList';
 import ManagementTeamForm from '../../components/ManagementTeamForm';
 import ManagementTeamList from '../../components/ManagementTeamList';
+import BoardMemberList from '../../components/BoardMemberList';
+import BoardMemberForm from '../../components/BoardMemberForm';
 import StatsManagement from '../../components/StatsManagement';
 import { getNews, deleteNews, updateNews, getAdmins, deleteAdmin } from "../../services/api";
 import axios from "axios";
@@ -74,7 +76,7 @@ interface AdminUser {
 const AdminDashboard = () => {
   const { token } = useAuth();
 
-  type Tab = "addNews" | "newsList" | "addStaff" | "staffList" | "addAdmin" | "adminList" | "addGallery" | "galleryList" | "addReport" | "reportsList" | "addCaseStory" | "caseStoriesList" | "addAlumni" | "alumniList" | "addProject" | "projectList" | "addBoardDirector" | "boardDirectorList" | "addManagementTeam" | "managementTeamList" | "statistics";
+  type Tab = "addNews" | "newsList" | "addStaff" | "staffList" | "addAdmin" | "adminList" | "addGallery" | "galleryList" | "addReport" | "reportsList" | "addCaseStory" | "caseStoriesList" | "addAlumni" | "alumniList" | "addProject" | "projectList" | "addBoardDirector" | "boardDirectorList" | "addBoardMember" | "boardMemberList" | "addManagementTeam" | "managementTeamList" | "statistics";
   const [activeTab, setActiveTab] = useState<Tab>("newsList");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -95,6 +97,8 @@ const AdminDashboard = () => {
   // Gallery states
   const [galleryRefreshKey, setGalleryRefreshKey] = useState(0);
   const [galleryList, setGalleryList] = useState<any[]>([]);
+  const [editingGalleryItem, setEditingGalleryItem] = useState<any | null>(null);
+  
 
   // Reports states
   const [reportsRefreshKey, setReportsRefreshKey] = useState(0);
@@ -103,6 +107,7 @@ const AdminDashboard = () => {
   // Case Stories states
   const [caseStoriesRefreshKey, setCaseStoriesRefreshKey] = useState(0);
   const [caseStoriesList, setCaseStoriesList] = useState<any[]>([]);
+  const [editingCaseStory, setEditingCaseStory] = useState<any | null>(null);
 
   // Alumni states
   const [alumniRefreshKey, setAlumniRefreshKey] = useState(0);
@@ -117,9 +122,12 @@ const AdminDashboard = () => {
 
   // Board Director states
   const [boardDirectorRefreshKey, setBoardDirectorRefreshKey] = useState(0);
+  const [editingBoardDirector, setEditingBoardDirector] = useState<any | null>(null);
 
   // Management Team states
   const [managementTeamRefreshKey, setManagementTeamRefreshKey] = useState(0);
+  const [editingBoardMember, setEditingBoardMember] = useState<any | null>(null);
+  const [boardMemberRefreshKey, setBoardMemberRefreshKey] = useState(0);
 
   // Search functionality
   const [searchTerm, setSearchTerm] = useState("");
@@ -262,7 +270,30 @@ const AdminDashboard = () => {
     setGalleryRefreshKey(prev => prev + 1);
     fetchGallery();
     setActiveTab("galleryList");
+    setEditingGalleryItem(null);
   };
+
+  const handleEditGalleryItem = (item: any) => {
+    setEditingGalleryItem(item);
+    setActiveTab("addGallery");
+  };
+
+  const handleUpdateGalleryItem = async (id: number, data: FormData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/gallery/${id}`, data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      handleGalleryAdded();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error updating gallery item');
+    }
+  };
+
+  
 
   const handleReportAdded = () => {
     setReportsRefreshKey(prev => prev + 1);
@@ -274,6 +305,27 @@ const AdminDashboard = () => {
     setCaseStoriesRefreshKey(prev => prev + 1);
     fetchCaseStories();
     setActiveTab("caseStoriesList");
+    setEditingCaseStory(null);
+  };
+
+  const handleEditCaseStory = (story: any) => {
+    setEditingCaseStory(story);
+    setActiveTab("addCaseStory");
+  };
+
+  const handleUpdateCaseStory = async (id: number, data: FormData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/case-stories/${id}`, data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      handleCaseStoryAdded();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error updating case story');
+    }
   };
 
   const handleProjectAdded = () => {
@@ -284,11 +336,58 @@ const AdminDashboard = () => {
   const handleBoardDirectorAdded = () => {
     setBoardDirectorRefreshKey(prev => prev + 1);
     setActiveTab("boardDirectorList");
+    setEditingBoardDirector(null);
+  };
+
+  const handleEditBoardDirector = (director: any) => {
+    setEditingBoardDirector(director);
+    setActiveTab("addBoardDirector");
+  };
+
+  const handleUpdateBoardDirector = async (id: number, data: FormData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/board-directors/${id}`, data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      handleBoardDirectorAdded();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error updating board director');
+    }
   };
 
   const handleManagementTeamAdded = () => {
     setManagementTeamRefreshKey(prev => prev + 1);
     setActiveTab("managementTeamList");
+  };
+
+  const handleEditBoardMember = (member: any) => {
+    setEditingBoardMember(member);
+    setActiveTab("addBoardMember");
+  };
+
+  const handleUpdateBoardMember = async (id: number, data: FormData) => {
+    try {
+      const token = localStorage.getItem('token');
+      await axios.put(`http://localhost:5000/api/board-members/${id}`, data, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      handleBoardMemberAdded();
+    } catch (error: any) {
+      alert(error.response?.data?.message || 'Error updating board member');
+    }
+  };
+
+  const handleBoardMemberAdded = () => {
+    setBoardMemberRefreshKey(prev => prev + 1);
+    setActiveTab("boardMemberList");
+    setEditingBoardMember(null);
   };
 
   const handleDeleteNews = async (id: number) => {
@@ -335,7 +434,7 @@ const AdminDashboard = () => {
 
   // Alumni handlers
   const handleAlumniAdded = () => {
-    fetchAlumni();
+    setAlumniRefreshKey(prev => prev + 1);
     setActiveTab("alumniList");
     setShowAlumniForm(false);
     setEditingAlumni(null);
@@ -362,7 +461,7 @@ const AdminDashboard = () => {
       
       console.log('Delete response:', response.status);
       if (response.ok) {
-        fetchAlumni();
+        setAlumniRefreshKey(prev => prev + 1);
         alert("Alumni profile deleted successfully.");
       } else {
         const errorText = await response.text();
@@ -425,7 +524,7 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error saving alumni:', error);
-      alert("Failed to save alumni profile.");
+      alert("Failed to save alumni profile. Error: " + error.message);
     } finally {
       setAlumniFormLoading(false);
     }
@@ -515,6 +614,8 @@ const AdminDashboard = () => {
     { key: "addProject", label: "Add Project", icon: Plus },
     { key: "boardDirectorList", label: "Board Directors", icon: UserCheck },
     { key: "addBoardDirector", label: "Add Board Director", icon: Plus },
+    { key: "boardMemberList", label: "Board Members", icon: UserCheck },
+    { key: "addBoardMember", label: "Add Board Member", icon: Plus },
     { key: "managementTeamList", label: "Management Team", icon: UserCheck },
     { key: "addManagementTeam", label: "Add Team Member", icon: Plus },
     { key: "adminList", label: "Admin Users", icon: Shield },
@@ -540,6 +641,8 @@ const AdminDashboard = () => {
       case "projectList": return "Project Management";
       case "addBoardDirector": return "Add Board Director";
       case "boardDirectorList": return "Board Directors Management";
+      case "addBoardMember": return "Add Board Member";
+      case "boardMemberList": return "Board Members Management";
       case "addManagementTeam": return "Add Management Team Member";
       case "managementTeamList": return "Management Team";
       case "addAdmin": return "Create Admin User";
@@ -566,6 +669,8 @@ const AdminDashboard = () => {
       case "projectList": return "Manage ongoing and completed projects, track impact and beneficiaries";
       case "addBoardDirector": return "Add new members to the board of directors with their roles and expertise";
       case "boardDirectorList": return "Manage board of directors members, their profiles and contact information";
+      case "addBoardMember": return "Add new members to the board with their roles and expertise";
+      case "boardMemberList": return "Manage board members, their profiles and contact information";
       case "addManagementTeam": return "Add new members to the management team with department and role details";
       case "managementTeamList": return "Manage organizational leadership and staff members across all departments";
       case "addAdmin": return "Create new administrator accounts with full system access";
@@ -930,11 +1035,11 @@ const AdminDashboard = () => {
             )}
 
             {activeTab === "addGallery" && (
-              <GalleryManagement onGalleryAdded={handleGalleryAdded} />
+              <GalleryManagement onGalleryAdded={handleGalleryAdded} gallery={editingGalleryItem} onGalleryUpdated={handleUpdateGalleryItem} />
             )}
 
             {activeTab === "galleryList" && (
-              <GalleryList refresh={galleryRefreshKey} />
+              <GalleryList refresh={galleryRefreshKey} onEdit={handleEditGalleryItem} />
             )}
 
             {activeTab === "addReport" && (
@@ -946,11 +1051,11 @@ const AdminDashboard = () => {
             )}
 
             {activeTab === "addCaseStory" && (
-              <CaseStoriesManagement onStoryAdded={handleCaseStoryAdded} />
+              <CaseStoriesManagement onStoryAdded={handleCaseStoryAdded} story={editingCaseStory} onStoryUpdated={handleUpdateCaseStory} />
             )}
 
             {activeTab === "caseStoriesList" && (
-              <CaseStoriesList refreshTrigger={caseStoriesRefreshKey} />
+              <CaseStoriesList refreshTrigger={caseStoriesRefreshKey} onEdit={handleEditCaseStory} />
             )}
 
             {activeTab === "addAlumni" && (
@@ -999,11 +1104,19 @@ const AdminDashboard = () => {
             )}
 
             {activeTab === "addBoardDirector" && (
-              <BoardDirectorForm onDirectorAdded={handleBoardDirectorAdded} />
+              <BoardDirectorForm onDirectorAdded={handleBoardDirectorAdded} director={editingBoardDirector} onDirectorUpdated={handleUpdateBoardDirector} />
             )}
 
             {activeTab === "boardDirectorList" && (
-              <BoardDirectorList key={boardDirectorRefreshKey} refreshTrigger={0} />
+              <BoardDirectorList key={boardDirectorRefreshKey} refreshTrigger={boardDirectorRefreshKey} onEdit={handleEditBoardDirector} />
+            )}
+
+            {activeTab === "addBoardMember" && (
+              <BoardMemberForm onMemberAdded={handleBoardMemberAdded} member={editingBoardMember} onMemberUpdated={handleUpdateBoardMember} />
+            )}
+
+            {activeTab === "boardMemberList" && (
+              <BoardMemberList key={boardMemberRefreshKey} refreshTrigger={boardMemberRefreshKey} onEdit={handleEditBoardMember} />
             )}
 
             {activeTab === "addManagementTeam" && (

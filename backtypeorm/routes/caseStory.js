@@ -1,10 +1,17 @@
 const express = require('express');
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const router = express.Router();
 const AppDataSource = require('../config/database');
 const CaseStory = require('../entities/CaseStory');
 const { auth, adminOnly } = require('../middleware/auth');
+
+// Ensure the upload directory exists
+const uploadDir = path.join(__dirname, '../uploads/caseStories');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Multer config for case stories
 const storage = multer.diskStorage({
@@ -73,6 +80,11 @@ router.get('/:id', async (req, res) => {
 // POST /api/case-stories - Create new case story (protected route)
 router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
   try {
+    // Handle multipart/form-data
+    if (req.headers['content-type']?.includes('multipart/form-data') && !req.body) {
+      return res.status(400).json({ message: "Invalid form data" });
+    }
+
     const { title, content, summary, beneficiaryName, age, location, category, impact, outcome, dateRecorded, publishDate, tags, featured, status } = req.body;
     
     // Validate required fields
@@ -110,7 +122,7 @@ router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
       dateRecorded: dateRecorded ? new Date(dateRecorded) : null,
       publishDate: publishDate ? new Date(publishDate) : null,
       tags: processedTags,
-      featured: (typeof featured === 'string') ? featured === 'true' : !!featured,
+      featured: featured === 'true',
       status: status || 'published',
       createdBy: req.user.id
     });
@@ -132,41 +144,40 @@ router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
 // PUT /api/case-stories/:id - Update case story (protected route)
 router.put('/:id', auth, adminOnly, upload.single('media'), async (req, res) => {
   try {
+    const caseStoryRepository = AppDataSource.getRepository(CaseStory);
+    const caseStory = await caseStoryRepository.findOne({ where: { id: req.params.id } });
+    if (!caseStory) {
+      return res.status(404).json({ message: 'Case story not found' });
+    }
+
     const { title, content, summary, beneficiaryName, age, location, category, impact, outcome, dateRecorded, publishDate, tags, featured, status } = req.body;
     
-    // Handle tags: convert string to array if needed
-    let processedTags = tags;
-    if (tags && typeof tags === 'string') {
-      processedTags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+    const updateData = {};
+    if (title) updateData.title = title;
+    if (content) updateData.content = content;
+    if (summary) updateData.summary = summary;
+    if (beneficiaryName) updateData.beneficiaryName = beneficiaryName;
+    if (age) updateData.age = parseInt(age);
+    if (location) updateData.location = location;
+    if (category) updateData.category = category;
+    if (impact) updateData.impact = impact;
+    if (outcome) updateData.outcome = outcome;
+    if (dateRecorded) updateData.dateRecorded = new Date(dateRecorded);
+    if (publishDate) updateData.publishDate = new Date(publishDate);
+    if (tags) {
+      if (typeof tags === 'string') {
+        updateData.tags = tags.split(',').map(tag => tag.trim()).filter(tag => tag);
+      } else {
+        updateData.tags = tags;
+      }
     }
-    
-    const updateData = {
-      title,
-      content,
-      summary,
-      beneficiaryName,
-      age: age ? parseInt(age) : null,
-      location,
-      category,
-      impact,
-      outcome,
-      dateRecorded: dateRecorded ? new Date(dateRecorded) : null,
-      publishDate: publishDate ? new Date(publishDate) : null,
-      tags: processedTags,
-      featured: featured === 'true' || featured === true,
-      status: status || 'draft'
-    };
+    if (featured !== undefined) updateData.featured = featured === 'true';
+    if (status) updateData.status = status;
 
     // If new media uploaded, update media fields
     if (req.file) {
       updateData.mediaUrl = `/uploads/caseStories/${req.file.filename}`;
       updateData.mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
-    }
-
-    const caseStoryRepository = AppDataSource.getRepository(CaseStory);
-    const caseStory = await caseStoryRepository.findOne({ where: { id: req.params.id } });
-    if (!caseStory) {
-      return res.status(404).json({ message: 'Case story not found' });
     }
     
     await caseStoryRepository.update(req.params.id, updateData);

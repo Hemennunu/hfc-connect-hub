@@ -1,9 +1,14 @@
-// src/components/GalleryManagement.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
 
-const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) => {
+interface GalleryManagementProps {
+  onGalleryAdded: () => void;
+  gallery?: any; // Optional prop for editing
+  onGalleryUpdated?: (id: number, data: FormData) => void; // Optional prop for updating
+}
+
+const GalleryManagement = ({ onGalleryAdded, gallery, onGalleryUpdated }: GalleryManagementProps) => {
   const [galleryData, setGalleryData] = useState({
     title: "",
     category: "Child Development",
@@ -17,6 +22,21 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
   const [mediaFile, setMediaFile] = useState<File | null>(null);
 
   const { token } = useAuth();
+
+  useEffect(() => {
+    if (gallery) {
+      setGalleryData({
+        title: gallery.title || "",
+        category: gallery.category || "Child Development",
+        description: gallery.description || "",
+        location: gallery.location || "",
+        dateTaken: gallery.dateTaken ? gallery.dateTaken.split('T')[0] : "", // Format date for input
+        tags: gallery.tags || "",
+        featured: gallery.featured || false,
+        status: gallery.status || "published",
+      });
+    }
+  }, [gallery]);
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -40,14 +60,16 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!mediaFile) {
+    if (!mediaFile && !gallery) {
       alert("Please select a media file to upload.");
       return;
     }
     
     try {
       const formData = new FormData();
-      formData.append('media', mediaFile);
+      if (mediaFile) {
+        formData.append('media', mediaFile);
+      }
       formData.append('title', galleryData.title);
       formData.append('description', galleryData.description);
       formData.append('category', galleryData.category);
@@ -57,13 +79,23 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
       formData.append('featured', galleryData.featured.toString());
       formData.append('status', galleryData.status);
       
-      await axios.post("http://localhost:5000/api/gallery", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-      alert("Gallery item added successfully!");
+      if (gallery) {
+        // Update existing gallery item
+        if (onGalleryUpdated) {
+          await onGalleryUpdated(gallery.id, formData);
+          alert("Gallery item updated successfully!");
+        }
+      } else {
+        // Create new gallery item
+        await axios.post("http://localhost:5000/api/gallery", formData, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        });
+        alert("Gallery item added successfully!");
+      }
+      
       setGalleryData({
         title: "",
         category: "Child Development",
@@ -77,7 +109,7 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
       setMediaFile(null);
       onGalleryAdded();
     } catch (err) {
-      alert("Failed to add gallery item.");
+      alert("Failed to save gallery item.");
       console.error(err);
     }
   };
@@ -188,9 +220,18 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
             type="file"
             accept="image/*,video/*"
             onChange={handleFileChange}
-            required
             className="input h-12"
           />
+          {gallery && gallery.mediaUrl && (
+            <div className="mt-4">
+              <p className="text-sm text-gray-500">Current media:</p>
+              {gallery.mediaType === 'video' ? (
+                <video src={`http://localhost:5000/uploads/gallery/${gallery.mediaUrl}`} controls className="w-full h-auto rounded-lg" />
+              ) : (
+                <img src={`http://localhost:5000/uploads/gallery/${gallery.mediaUrl}`} alt={gallery.title} className="w-full h-auto rounded-lg" />
+              )}
+            </div>
+          )}
         </div>
       </div>
 
@@ -212,7 +253,7 @@ const GalleryManagement = ({ onGalleryAdded }: { onGalleryAdded: () => void }) =
         type="submit"
         className="bg-gradient-primary hover:bg-gradient-hero text-primary-foreground px-10 py-6 h-auto font-bold text-lg shadow-glow hover:shadow-xl transition-all duration-300 rounded-lg"
       >
-        Add to Gallery
+        {gallery ? 'Update Gallery Item' : 'Add to Gallery'}
       </button>
     </form>
   );

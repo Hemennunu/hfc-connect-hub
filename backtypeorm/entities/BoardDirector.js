@@ -32,10 +32,6 @@ const BoardDirector = new EntitySchema({
       type: 'text',
       nullable: true,
     },
-    image: {
-      type: 'text',
-      nullable: true,
-    },
     profileImage: {
       type: 'text',
       nullable: true,
@@ -51,11 +47,6 @@ const BoardDirector = new EntitySchema({
       nullable: true,
     },
     linkedinUrl: {
-      type: 'varchar',
-      length: 500,
-      nullable: true,
-    },
-    linkedin: {
       type: 'varchar',
       length: 500,
       nullable: true,

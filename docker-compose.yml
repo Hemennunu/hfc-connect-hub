@@ -1,0 +1,11 @@
+version: "3.9"
+services:
+  mysql:
+    image: mysql:latest
+    container_name: my-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: "@Nuhamin123"
+      MYSQL_DATABASE: hfc_database
+    ports:
+      - "3306:3306"

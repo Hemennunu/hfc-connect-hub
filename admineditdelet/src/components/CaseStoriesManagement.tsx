@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 interface CaseStoriesManagementProps {
   onStoryAdded: () => void;
+  story?: any;
+  onStoryUpdated: (id: number, data: FormData) => void;
 }
 
-const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAdded }) => {
+const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAdded, story, onStoryUpdated }) => {
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -21,6 +23,23 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    if (story) {
+      setFormData({
+        title: story.title || '',
+        content: story.content || '',
+        summary: story.summary || '',
+        beneficiaryName: story.beneficiaryName || '',
+        location: story.location || '',
+        category: story.category || 'Child Development',
+        mediaType: story.mediaType || 'text',
+        impact: story.impact || '',
+        tags: Array.isArray(story.tags) ? story.tags.join(', ') : '',
+        featured: story.featured || false
+      });
+    }
+  }, [story]);
 
   const categories = [
     'Child Development',
@@ -65,35 +84,38 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
       submitData.append('media', file);
     }
 
-    try {
-      const token = localStorage.getItem('token');
-      await axios.post('http://localhost:5000/api/case-stories', submitData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+    if (story) {
+      onStoryUpdated(story.id, submitData);
+    } else {
+      try {
+        const token = localStorage.getItem('token');
+        await axios.post('http://localhost:5000/api/case-stories', submitData, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data'
+          }
+        });
 
-      setMessage('Case story created successfully!');
-      setFormData({
-        title: '',
-        content: '',
-        summary: '',
-        beneficiaryName: '',
-        location: '',
-        category: 'Child Development',
-        mediaType: 'text',
-        impact: '',
-        tags: '',
-        featured: false
-      });
-      setFile(null);
-      onStoryAdded();
-    } catch (error: any) {
-      setMessage(error.response?.data?.message || 'Error creating case story');
-    } finally {
-      setLoading(false);
+        setMessage('Case story created successfully!');
+        setFormData({
+          title: '',
+          content: '',
+          summary: '',
+          beneficiaryName: '',
+          location: '',
+          category: 'Child Development',
+          mediaType: 'text',
+          impact: '',
+          tags: '',
+          featured: false
+        });
+        setFile(null);
+        onStoryAdded();
+      } catch (error: any) {
+        setMessage(error.response?.data?.message || 'Error creating case story');
+      }
     }
+    setLoading(false);
   };
 
   return (
@@ -105,7 +127,7 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
           </svg>
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Create Case Story</h2>
+          <h2 className="text-2xl font-bold text-gray-900">{story ? 'Edit Case Story' : 'Create Case Story'}</h2>
           <p className="text-gray-600">Share impactful stories from your community work</p>
         </div>
       </div>
@@ -288,7 +310,7 @@ const CaseStoriesManagement: React.FC<CaseStoriesManagementProps> = ({ onStoryAd
             disabled={loading}
             className="px-8 py-3 bg-gradient-accent text-white font-semibold rounded-lg hover:shadow-lg transform hover:scale-105 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Creating...' : 'Create Case Story'}
+            {loading ? (story ? 'Updating...' : 'Creating...') : (story ? 'Update Case Story' : 'Create Case Story')}
           </button>
         </div>
       </form>

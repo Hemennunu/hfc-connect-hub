@@ -29,7 +29,7 @@ const GalleryItem = new EntitySchema({
     },
     category: {
       type: 'enum',
-      enum: ['events', 'projects', 'community', 'facilities', 'staff', 'beneficiaries'],
+      enum: ['Child Development', 'Community Empowerment', 'HIV/AIDS Support', 'Social Accountability', 'Events', 'Training'],
       nullable: false,
     },
     location: {
