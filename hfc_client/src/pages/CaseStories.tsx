@@ -119,34 +119,102 @@ const CaseStories: React.FC = () => {
 
     // Handle document files
     if (docType) {
-      return (
-        <div className="h-64 bg-gray-50 rounded-lg flex flex-col items-center justify-center p-4 border border-gray-200">
-          <div className="text-5xl mb-4">{docType.icon}</div>
-          <p className="text-center text-gray-600 mb-4">{docType.label}</p>
-          <div className="flex gap-2">
-            <a 
-              href={mediaUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+      const isPdf = fileExt === 'pdf';
+      const isOfficeDoc = ['docx', 'doc', 'xlsx', 'xls', 'pptx', 'ppt'].includes(fileExt);
+      
+      // For PDFs and Office docs, show an embedded preview
+      if (isPdf) {
+        const viewerUrl = `${mediaUrl}#view=fitH`;
+        
+        return (
+          <div className="h-[800px] w-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden flex flex-col">
+            <div className="p-2 bg-gray-100 border-b flex justify-between items-center">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium text-gray-700">
+                  PDF Preview
+                </span>
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">
+                  {fileExt.toUpperCase()}
+                </span>
+              </div>
+              <a 
+                href={mediaUrl}
+                download
+                className="text-xs bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 px-2 py-1 rounded flex items-center gap-1"
+              >
+                <span>Download</span>
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </a>
+            </div>
+            <iframe 
+              src={viewerUrl}
+              className="w-full flex-1 border-0"
+              title="PDF Preview: {story.title}"
+              allowFullScreen
             >
-              <span>View</span>
-              <span className="text-xs opacity-80">({fileExt.toUpperCase()})</span>
-            </a>
-            <a 
-              href={mediaUrl}
-              download
-              className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
-            >
-              <span>Download</span>
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-            </a>
+              <p>Your browser does not support iframes. <a href={mediaUrl} download>Download the file</a> instead.</p>
+            </iframe>
           </div>
-        </div>
-      );
-    }
+        );
+      }
+      
+      // For Office documents, show a download card with preview option
+      if (isOfficeDoc) {
+        return (
+          <div className="h-64 w-full bg-gradient-to-br from-blue-50 to-white rounded-lg border-2 border-dashed border-blue-200 flex flex-col items-center justify-center p-6 text-center">
+            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
+              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">{docType.label} Document</h3>
+            <p className="text-gray-500 mb-6">This document can be viewed after downloading</p>
+            <div className="flex gap-3">
+              <a 
+                href={mediaUrl}
+                download
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Download {fileExt.toUpperCase()}
+              </a>
+              <a 
+                href={`https://docs.google.com/viewer?url=${encodeURIComponent(mediaUrl)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                <svg className="-ml-1 mr-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+                Open in New Tab
+              </a>
+            </div>
+          </div>
+        );
+      }
+      
+      // For images, show them directly
+      if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+        return (
+          <div className="w-full bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+            <img 
+              src={mediaUrl}
+              alt={story.title}
+              className="w-full h-auto max-h-[800px] object-contain"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MDAiIGhlaWdodD0iNDAwIiB2aWV3Qm94PSIwIDAgMjQgMjQiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2QxZDVmYSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiPjxwYXRoIGQ9Ik0yMSAxNXY0YTIgMiAwIDAgMS0yIDJINGEyIDIgMCAwIDEtMi0ydi00Ii8+PHBvbHlsaW5lIHBvaW50cz0iNyAxMCAxMiAxNSA3IDIwIi8+PGxpbmUgeDE9IjEyIiB5MT0iMTUiIHgyPSIxMiIgeTI9IjMiLz48L3N2Zz4=';
+              }}
+            />
+          </div>
+        );
+      }
+
+    } // Close the if (docType) block
 
     switch (story.mediaType) {
       case 'photo':
