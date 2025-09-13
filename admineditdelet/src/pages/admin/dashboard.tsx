@@ -24,28 +24,72 @@ import BoardMemberForm from '../../components/BoardMemberForm';
 import StatsManagement from '../../components/StatsManagement';
 import { getNews, deleteNews, updateNews, getAdmins, deleteAdmin } from "../../services/api";
 import axios from "axios";
-import {
+import * as LucideIcons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+// Re-export all icons for easier access
+const {
   Plus,
   FileText,
   Users,
-  UserCheck,
-  Edit3,
-  Trash2,
-  Save,
-  X,
-  Search,
-  Shield,
-  UserCog,
   Image,
   GraduationCap,
   FolderOpen,
+  UserCheck,
+  Shield,
+  UserCog,
   BarChart3,
-} from "lucide-react";
+  Search,
+  X,
+  Edit3,
+  Trash2,
+  Save,
+  LogOut,
+  ArrowDown,
+  // Add other icons as needed
+} = LucideIcons;
+
+// Export with aliases if needed
+export {
+  Plus,
+  FileText,
+  Users,
+  Image,
+  GraduationCap,
+  FolderOpen,
+  UserCheck,
+  Shield,
+  UserCog,
+  BarChart3,
+  Search,
+  X,
+  Edit3,
+  Trash2,
+  Save,
+  LogOut,
+  ArrowDown as AArrowDown,
+};
+
+// Type for our navigation items
+interface NavigationItem {
+  key: string;
+  label: string;
+  icon: string; // Will be a key of LucideIcons
+}
+
+// Helper function to safely get an icon component
+const getIconComponent = (iconName: string) => {
+  const IconComponent = (LucideIcons as any)[iconName];
+  return IconComponent && typeof IconComponent === 'function' 
+    ? IconComponent 
+    : LucideIcons.FileText; // Fallback icon
+};
 
 interface NewsArticle {
   id: number;
   title: string;
   type: string;
+  icon: React.ComponentType<{ className?: string; size?: number; color?: string }>;
   content: string;
   date: string;
   eventDate?: string;
@@ -74,7 +118,7 @@ interface AdminUser {
 }
 
 const AdminDashboard = () => {
-  const { token } = useAuth();
+  const { token, logout } = useAuth();
 
   type Tab = "addNews" | "newsList" | "addStaff" | "staffList" | "addAdmin" | "adminList" | "addGallery" | "galleryList" | "addReport" | "reportsList" | "addCaseStory" | "caseStoriesList" | "addAlumni" | "alumniList" | "addProject" | "projectList" | "addBoardDirector" | "boardDirectorList" | "addBoardMember" | "boardMemberList" | "addManagementTeam" | "managementTeamList" | "statistics";
   const [activeTab, setActiveTab] = useState<Tab>("newsList");
@@ -524,7 +568,8 @@ const AdminDashboard = () => {
       }
     } catch (error) {
       console.error('Error saving alumni:', error);
-      alert("Failed to save alumni profile. Error: " + error.message);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      alert("Failed to save alumni profile. Error: " + errorMessage);
     } finally {
       setAlumniFormLoading(false);
     }
@@ -597,30 +642,35 @@ const AdminDashboard = () => {
   );
 
 
-  const navigationItems = [
-    { key: "newsList", label: "News Feed", icon: FileText },
-    { key: "addNews", label: "Add News", icon: Plus },
-    { key: "reportsList", label: "Reports", icon: FileText },
-    { key: "addReport", label: "Add Report", icon: Plus },
-    { key: "caseStoriesList", label: "Case Stories", icon: FileText },
-    { key: "addCaseStory", label: "Add Story", icon: Plus },
-    { key: "staffList", label: "Staff Directory", icon: Users },
-    { key: "addStaff", label: "Add Staff", icon: Plus },
-    { key: "galleryList", label: "Gallery Items", icon: Image },
-    { key: "addGallery", label: "Add Gallery", icon: Plus },
-    { key: "alumniList", label: "Alumni Directory", icon: GraduationCap },
-    { key: "addAlumni", label: "Add Alumni", icon: Plus },
-    { key: "projectList", label: "Project Directory", icon: FolderOpen },
-    { key: "addProject", label: "Add Project", icon: Plus },
-    { key: "boardDirectorList", label: "Board Directors", icon: UserCheck },
-    { key: "addBoardDirector", label: "Add Board Director", icon: Plus },
-    { key: "boardMemberList", label: "Board Members", icon: UserCheck },
-    { key: "addBoardMember", label: "Add Board Member", icon: Plus },
-    { key: "managementTeamList", label: "Management Team", icon: UserCheck },
-    { key: "addManagementTeam", label: "Add Team Member", icon: Plus },
-    { key: "adminList", label: "Admin Users", icon: Shield },
-    { key: "addAdmin", label: "Add Admin", icon: UserCog },
-    { key: "statistics", label: "Statistics", icon: BarChart3 },
+  interface NavigationItem {
+  key: string;
+  label: string;
+  icon: keyof typeof LucideIcons;
+}
+
+const navigationItems: NavigationItem[] = [
+  { key: "newsList", label: "News Feed", icon: "FileText" },
+  { key: "addNews", label: "Add News", icon: "Plus" },
+  { key: "reportsList", label: "Reports", icon: "FileText" },
+  { key: "addReport", label: "Add Report", icon: "Plus" },
+  { key: "caseStoriesList", label: "Case Stories", icon: "FileText" },
+  { key: "addCaseStory", label: "Add Story", icon: "Plus" },
+  { key: "staffList", label: "Staff Directory", icon: "Users" },
+  { key: "addStaff", label: "Add Staff", icon: "Plus" },
+  { key: "galleryList", label: "Gallery Items", icon: "Image" },
+  { key: "addGallery", label: "Add Gallery", icon: "Plus" },
+  { key: "alumniList", label: "Alumni Directory", icon: "GraduationCap" },
+  { key: "addAlumni", label: "Add Alumni", icon: "Plus" },
+  { key: "projectList", label: "Project Directory", icon: "FolderOpen" },
+  { key: "addProject", label: "Add Project", icon: "Plus" },
+  { key: "boardDirectorList", label: "Board Directors", icon: "UserCheck" },
+  { key: "addBoardDirector", label: "Add Board Director", icon: "Plus" },
+  ,
+  { key: "managementTeamList", label: "Management Team", icon: "UserCheck" },
+  { key: "addManagementTeam", label: "Add Team Member", icon: "Plus" },
+  { key: "adminList", label: "Admin Users", icon: "Shield" },
+  { key: "addAdmin", label: "Add Admin", icon: "UserCog" },
+  { key: "statistics", label: "Statistics", icon: "BarChart3" },
   ];
 
   const getTabTitle = () => {
@@ -641,8 +691,7 @@ const AdminDashboard = () => {
       case "projectList": return "Project Management";
       case "addBoardDirector": return "Add Board Director";
       case "boardDirectorList": return "Board Directors Management";
-      case "addBoardMember": return "Add Board Member";
-      case "boardMemberList": return "Board Members Management";
+      
       case "addManagementTeam": return "Add Management Team Member";
       case "managementTeamList": return "Management Team";
       case "addAdmin": return "Create Admin User";
@@ -669,8 +718,6 @@ const AdminDashboard = () => {
       case "projectList": return "Manage ongoing and completed projects, track impact and beneficiaries";
       case "addBoardDirector": return "Add new members to the board of directors with their roles and expertise";
       case "boardDirectorList": return "Manage board of directors members, their profiles and contact information";
-      case "addBoardMember": return "Add new members to the board with their roles and expertise";
-      case "boardMemberList": return "Manage board members, their profiles and contact information";
       case "addManagementTeam": return "Add new members to the management team with department and role details";
       case "managementTeamList": return "Manage organizational leadership and staff members across all departments";
       case "addAdmin": return "Create new administrator accounts with full system access";
@@ -701,17 +748,27 @@ const AdminDashboard = () => {
               <span className="font-semibold">Admin Portal</span>
             </div>
           </div>
-          {(activeTab === "newsList" || activeTab === "staffList" || activeTab === "adminList") && (
-            <div className="relative w-40">
-              <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-              <input
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9 pr-3 h-9 input w-full"
-              />
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            {(activeTab === "newsList" || activeTab === "staffList" || activeTab === "adminList") && (
+              <div className="relative w-40">
+                <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                <input
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-9 pr-3 h-9 input w-full"
+                />
+              </div>
+            )}
+            <button
+              onClick={logout}
+              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:text-red-600 transition-colors duration-200"
+              title="Logout"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden sm:inline">Logout</span>
+            </button>
+          </div>
         </div>
       </header>
 
@@ -759,7 +816,10 @@ const AdminDashboard = () => {
                   }
                 }}
               >
-                <Icon className="w-4 h-4 mr-2 flex-shrink-0" />
+{React.createElement(getIconComponent(Icon), { 
+  className: "w-4 h-4 mr-2 flex-shrink-0",
+  size: 16 
+})}
                 <span className="truncate">{label}</span>
               </button>
             ))}
@@ -983,7 +1043,16 @@ const AdminDashboard = () => {
                         className="card hover:shadow-xl transition-all duration-300 border-muted hover:border-primary/40 hover:scale-[1.02] bg-gradient-to-br from-white to-gray-50/50"
                       >
                         <div className="p-8">
-                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-6">
+                            {news.mediaUrl && (
+                              <div className="flex-shrink-0">
+                                <img
+                                  src={news.mediaUrl}
+                                  alt={news.title}
+                                  className="w-32 h-32 sm:w-40 sm:h-40 object-cover rounded-lg shadow-md"
+                                />
+                              </div>
+                            )}
                             <div className="flex-1">
                               <div className="flex items-center space-x-4 mb-4">
                                 <h3 className="text-2xl font-bold text-foreground">

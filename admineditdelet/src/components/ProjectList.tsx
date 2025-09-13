@@ -12,7 +12,7 @@ interface Project {
   endDate?: string;
   completedDate?: string;
   beneficiaries?: string;
-  budget?: number;
+  budget?: string;
   fundingSource?: string;
   objectives?: string;
   challenges?: string;

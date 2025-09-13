@@ -1,7 +1,8 @@
 // src/components/GalleryList.tsx
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import axios from "axios";
 import { useAuth } from "../context/AuthContext";
+import Description from './Description'; // Import the new component
 
 interface GalleryItem {
   id: number;
@@ -9,7 +10,7 @@ interface GalleryItem {
   description?: string;
   mediaUrl: string;
   mediaType: 'image' | 'video';
-  category: 'events' | 'projects' | 'community' | 'facilities' | 'staff' | 'beneficiaries';
+  category: 'Child Development' | 'Community Empowerment' | 'HIV/AIDS Support' | 'Social Accountability' | 'Events' | 'Training';
   location?: string;
   dateTaken?: string;
   tags?: string;
@@ -66,55 +67,55 @@ const GalleryList = ({ refresh, onEdit }: { refresh: number, onEdit: (item: Gall
       {galleryItems.length === 0 ? (
         <p className="text-muted-foreground">No gallery items found.</p>
       ) : (
-        <div className="grid gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {galleryItems.map((item) => (
-            <div key={item.id} className="bg-card p-6 rounded-lg shadow-medium border">
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  {item.mediaUrl && (
-                    <div className="mb-4">
-                      {item.mediaType === 'video' ? (
-                        <video src={`http://localhost:5000/uploads/gallery/${item.mediaUrl}`} controls className="w-64 h-64 rounded-lg object-cover" />
-                      ) : (
-                        <img src={`http://localhost:5000/uploads/gallery/${item.mediaUrl}`} alt={item.title} className="w-64 h-64 rounded-lg object-cover" />
-                      )}
-                    </div>
+            <div key={item.id} className="bg-card p-4 rounded-lg shadow-medium border flex flex-col h-full">
+              {item.mediaUrl && (
+                <div className="mb-4 relative w-full" style={{ paddingTop: '75%' /* 4:3 Aspect Ratio */ }}>
+                  {item.mediaType === 'video' ? (
+                    <video src={`http://localhost:5000/uploads/gallery/${item.mediaUrl}`} controls className="absolute top-0 left-0 w-full h-full rounded-lg object-cover" />
+                  ) : (
+                    <img src={`http://localhost:5000/uploads/gallery/${item.mediaUrl}`} alt={item.title} className="absolute top-0 left-0 w-full h-full rounded-lg object-cover" />
                   )}
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="text-lg font-semibold text-foreground">{item.title}</h3>
-                    {item.featured && (
-                      <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">
-                        Featured
-                      </span>
-                    )}
-                    <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
-                      {item.category}
-                    </span>
-                    <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs">
-                      {item.mediaType}
-                    </span>
-                  </div>
-                  <p className="text-muted-foreground mb-2">{item.description}</p>
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    {item.location && <p>📍 {item.location}</p>}
-                    <p className="text-sm text-gray-600">{item.dateTaken ? new Date(item.dateTaken).toLocaleDateString() : 'N/A'}</p>
-                    <p>🔗 <a href={`http://localhost:5000/uploads/gallery/${item.mediaUrl}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Media</a></p>
-                  </div>
                 </div>
-                <div className="flex space-x-2 ml-4">
-                  <button
-                    onClick={() => onEdit(item)}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(item.id)}
-                    className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-                  >
-                    Delete
-                  </button>
+              )}
+              <div className="flex-grow flex flex-col">
+                <h3 className="text-lg font-semibold text-foreground mb-2 break-words">{item.title}</h3>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {item.featured && (
+                    <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs font-semibold">
+                      Featured
+                    </span>
+                  )}
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">
+                    {item.category}
+                  </span>
+                  <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs capitalize">
+                    {item.mediaType}
+                  </span>
                 </div>
+                <div className="flex-grow">
+                  <Description text={item.description} />
+                </div>
+                <div className="text-sm text-muted-foreground space-y-1 mt-auto pt-2">
+                  {item.location && <p className="truncate">📍 {item.location}</p>}
+                  <p>{item.dateTaken ? new Date(item.dateTaken).toLocaleDateString() : 'N/A'}</p>
+                  <p>🔗 <a href={`http://localhost:5000/uploads/gallery/${item.mediaUrl}`} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">View Media</a></p>
+                </div>
+              </div>
+              <div className="flex space-x-2 mt-4 border-t pt-4">
+                <button
+                  onClick={() => onEdit(item)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm w-full"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDelete(item.id)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm w-full"
+                >
+                  Delete
+                </button>
               </div>
             </div>
           ))}

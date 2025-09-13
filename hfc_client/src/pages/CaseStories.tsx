@@ -81,7 +81,7 @@ const CaseStories: React.FC = () => {
       case 'photo_essay':
         return (
           <img
-            src={`http://localhost:5000${story.mediaUrl}`}
+            src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`}
             alt={story.title}
             className="w-full h-64 object-cover rounded-lg"
           />
@@ -91,10 +91,10 @@ const CaseStories: React.FC = () => {
           <video
             controls
             className="w-full h-64 rounded-lg"
-            poster={story.thumbnailUrl ? `http://localhost:5000${story.thumbnailUrl}` : undefined}
+            poster={story.thumbnailUrl ? `http://localhost:5000/uploads/caseStories/${story.thumbnailUrl}` : undefined}
           >
-            <source src={`http://localhost:5000${story.mediaUrl}`} type="video/mp4" />
-            <source src={`http://localhost:5000${story.mediaUrl}`} type="video/webm" />
+            <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="video/mp4" />
+            <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="video/webm" />
             Your browser does not support the video tag.
           </video>
         );
@@ -102,8 +102,8 @@ const CaseStories: React.FC = () => {
         return (
           <div className="bg-gray-100 p-6 rounded-lg">
             <audio controls className="w-full">
-              <source src={`http://localhost:5000${story.mediaUrl}`} type="audio/mpeg" />
-              <source src={`http://localhost:5000${story.mediaUrl}`} type="audio/wav" />
+              <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="audio/mpeg" />
+              <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="audio/wav" />
               Your browser does not support the audio element.
             </audio>
           </div>

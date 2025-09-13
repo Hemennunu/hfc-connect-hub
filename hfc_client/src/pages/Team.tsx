@@ -2,16 +2,39 @@ import Layout from "@/components/layout/Layout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Mail, Linkedin, Twitter, ChevronDown, ChevronUp } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import axios from "axios";
 import founderImage from "@/assets/foundeerpic.jpg";
-import founderImage1 from "@/assets/RahelBirhanu.jpg";
-import founderImage2 from "@/assets/AberaWondemu.png";
-import founderImage3 from "@/assets/Sisay sfay.png";
-import founderImage4 from "@/assets/Zelalem .jpg";
-import founderImage5 from "@/assets/TsedalEndrias.jpg";
-import founderImage6 from "@/assets/TsionBerga.jpg";
-import founderImage7 from "@/assets/emaos.jpg";
-import founderImage8 from "@/assets/wub.jpg";
+
+interface BoardDirector {
+  id: number;
+  name: string;
+  position: string;
+  role?: string;
+  bio?: string;
+  expertise?: string;
+  profileImage?: string;
+  email?: string;
+  phone?: string;
+  linkedinUrl?: string;
+  isActive: boolean;
+  order: number;
+}
+
+interface ManagementTeamMember {
+  id: number;
+  name: string;
+  position: string;
+  bio?: string;
+  expertise?: string;
+  image?: string;
+  email?: string;
+  phone?: string;
+  linkedinUrl?: string;
+  isActive: boolean;
+  order: number;
+}
+
 const FounderBio = ({ bio }: { bio: string }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const truncatedBio = bio.slice(0, 400) + "...";
@@ -42,6 +65,47 @@ const FounderBio = ({ bio }: { bio: string }) => {
 };
 
 const Team = () => {
+  const [boardDirectors, setBoardDirectors] = useState<BoardDirector[]>([]);
+  const [managementTeam, setManagementTeam] = useState<ManagementTeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchTeamData = async () => {
+      try {
+        setLoading(true);
+        console.log('🔄 Client: Starting to fetch team data...');
+        
+        // Fetch board directors
+        console.log('🔄 Client: Fetching board directors...');
+        const boardResponse = await axios.get('http://localhost:5000/api/board-directors');
+        console.log('📊 Client: Board directors response:', boardResponse.data);
+        const activeBoardDirectors = boardResponse.data.filter((director: BoardDirector) => director.isActive);
+        console.log('✅ Client: Active board directors:', activeBoardDirectors);
+        setBoardDirectors(activeBoardDirectors.sort((a: BoardDirector, b: BoardDirector) => a.order - b.order));
+        
+        // Fetch management team
+        console.log('🔄 Client: Fetching management team...');
+        const managementResponse = await axios.get('http://localhost:5000/api/management-team');
+        console.log('📊 Client: Management team response:', managementResponse.data);
+        const activeManagementTeam = managementResponse.data.filter((member: ManagementTeamMember) => member.isActive);
+        console.log('✅ Client: Active management team:', activeManagementTeam);
+        setManagementTeam(activeManagementTeam.sort((a: ManagementTeamMember, b: ManagementTeamMember) => a.order - b.order));
+        
+        console.log('🎉 Client: Team data fetch completed successfully!');
+        
+      } catch (error) {
+        console.error('❌ Client: Error fetching team data:', error);
+        // Fallback to empty arrays if API fails
+        setBoardDirectors([]);
+        setManagementTeam([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTeamData();
+  }, []);
+
   const founder = {
     name: "Yewoinshet Masresha",
     role: "Founder & Visionary Leader",
@@ -52,124 +116,7 @@ const Team = () => {
     twitter: "#"
   };
 
-  const boardMembers = [
-    {
-      name: "Rahel Berhanu Tesfa",
-      role: "HFC Board of Director Chairperson ",
-      expertise: "Multidisciplinary Human Rights Leader",
-      image: founderImage1
-    },
-    {
-      name: "Aberra Wondimu",
-      role: "Vice Chairperson Board of Directors",
-      expertise: "Humanitarian Development Leader",
-      image: founderImage2
-    },
-    
-    {
-      name: "Zelalem Mamuye ",
-      role: " Executive Director",
-      expertise: "Executive Director & Development Management Specialist",
-      image: founderImage4
-    },
-   
-    {
-      name: "Tsedale Endrias",
-      role: "Vice Manager  & Sponsorship and Group Home Project oordinator  ",
-      expertise: "Community Health and Social Work Leader",
-      image: founderImage5
-    },
-    {
-      name: "Tsion Berga",
-      role: "Finance Manage",
-      expertise: "Finance Manager & Accounting Expert",
-      image: founderImage6
-    },
-    {
-      name: "Sisay Tesfaye",
-      role: "Board Member ",
-      expertise: "Psychosocial Support & Educational Leadership Expert",
-      image: founderImage3
-    },
-    {
-      name: "Emaos Linigerh ",
-      role: "Project Coordinator & Communication Advisor",
-      expertise: "Development Communication Specialist",
-      image: founderImage7
-    },
-    {
-      name: "Wubtaye Getachew  ",
-      role: "Harar Branch Office Coordinator & Management Team Member",
-      expertise: "Social Accountability and Leadership Specialist",
-      image: founderImage8
-    }
-  ];
 
-  const staff = [
-    {
-      name: "Rahel Berhanu Tesfa",
-      role: "Board Chairperson",
-      department: "Board of Directors",
-      location: "Addis Ababa, Ethiopia",
-      email: "rahel.berhanu@hfc.org"
-    },
-    {
-      name: "Meron Wonde",
-      role: "Board Member",
-      department: "Board of Directors",
-      location: "Addis Ababa, Ethiopia",
-      email: "meron.wonde@hfc.org"
-    },
-    {
-      name: "Aberra Wondimu",
-      role: "Vice Chairperson",
-      department: "Board of Directors",
-      location: "Addis Ababa, Ethiopia",
-      email: "aberra.wondimu@hfc.org"
-    },
-    {
-      name: "Zelalem Mamuye",
-      role: "Executive Director",
-      department: "Leadership",
-      location: "Addis Ababa, Ethiopia",
-      email: "zelalem.mamuye@hfc.org"
-    },
-    {
-      name: "Tsedale Endrias",
-      role: "Vice Manager & Sponsorship and Group Home Project Coordinator",
-      department: "Program Management",
-      location: "Addis Ababa, Ethiopia",
-      email: "tsedale.endrias@hfc.org"
-    },
-    {
-      name: "Tsion Berga",
-      role: "Finance Manager",
-      department: "Finance",
-      location: "Addis Ababa, Ethiopia",
-      email: "tsion.berga@hfc.org"
-    },
-    {
-      name: "Sisay Tesfaye",
-      role: "Board Member",
-      department: "Psychosocial Support & Education",
-      location: "Addis Ababa, Ethiopia",
-      email: "sisay.tesfaye@hfc.org"
-    },
-    {
-      name: "Emaos Lingerh",
-      role: "Project Coordinator & Communication Advisor",
-      department: "Communications & Development",
-      location: "Addis Ababa, Ethiopia",
-      email: "emaos.lingerh@hfc.org"
-    },
-    {
-      name: "Wubtaye Getachew",
-      role: "Harar Branch Office Coordinator & Management Team Member",
-      department: "Branch Management",
-      location: "Harar, Ethiopia",
-      email: "wubtaye.getachew@hfc.org"
-    }
-  ];
   
   return (
     <Layout>
@@ -232,64 +179,127 @@ const Team = () => {
         <section className="py-20 bg-muted">
           <div className="container mx-auto px-4">
             <h2 className="text-4xl font-bold text-center mb-16 text-foreground">Board of Directors</h2>
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
-              {boardMembers.map((member, index) => (
-                <Card key={index} className="shadow-medium hover:shadow-strong transition-all transform hover:-translate-y-2">
-                  <CardContent className="p-6 text-center">
-                    <img
-                      src={member.image}
-                      alt={member.name}
-                      className="w-24 h-24 object-cover rounded-full mx-auto mb-4 shadow-soft"
-                    />
-                    <h3 className="text-xl font-semibold mb-2 text-foreground">{member.name}</h3>
-                    <Badge variant="outline" className="mb-2">{member.role}</Badge>
-                    <p className="text-sm text-muted-foreground">{member.expertise}</p>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading board members...</p>
+              </div>
+            ) : boardDirectors.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No board members available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+                {boardDirectors.map((member) => (
+                  <Card key={member.id} className="shadow-medium hover:shadow-strong transition-all transform hover:-translate-y-2">
+                    <CardContent className="p-6 text-center">
+                      {member.profileImage ? (
+                        <img
+                          src={member.profileImage.startsWith('http') ? member.profileImage : `http://localhost:5000/uploads/boardDirectors/${member.profileImage}`}
+                          alt={member.name}
+                          className="w-24 h-24 object-cover rounded-full mx-auto mb-4 shadow-soft"
+                          onLoad={() => console.log('✅ Client: Board director image loaded:', member.name, member.profileImage.startsWith('http') ? member.profileImage : `http://localhost:5000/uploads/boardDirectors/${member.profileImage}`)}
+                          onError={(e) => {
+                            console.error('❌ Client: Board director image failed:', member.name, e.currentTarget.src);
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`${member.profileImage ? 'hidden' : ''} w-24 h-24 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mx-auto mb-4 shadow-soft`}>
+                        <span className="text-white text-2xl font-bold">
+                          {member.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2 text-foreground">{member.name}</h3>
+                      <Badge variant="outline" className="mb-2">{member.position}</Badge>
+                      {member.expertise && (
+                        <p className="text-sm text-muted-foreground">{member.expertise}</p>
+                      )}
+                      {member.email && (
+                        <div className="mt-3">
+                          <a
+                            href={`mailto:${member.email}`}
+                            className="text-primary hover:text-primary-light transition-colors"
+                          >
+                            <Mail className="w-4 h-4 mx-auto" />
+                          </a>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
           </div>
         </section>
 
-        {/* Staff Directory */}
+        {/* Management Team */}
         <section className="py-20">
           <div className="container mx-auto px-4">
-            <h2 className="text-4xl font-bold text-center mb-16 text-foreground">Our Staff</h2>
-            <div className="max-w-6xl mx-auto">
-              <div className="overflow-x-auto">
-                <table className="w-full bg-card rounded-lg shadow-medium">
-                  <thead className="bg-muted">
-                    <tr>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Name</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Role</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Department</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Location</th>
-                      <th className="px-6 py-4 text-left text-sm font-semibold text-foreground">Contact</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {staff.map((member, index) => (
-                      <tr key={index} className="border-b border-border hover:bg-muted/50 transition-colors">
-                        <td className="px-6 py-4 text-foreground font-medium">{member.name}</td>
-                        <td className="px-6 py-4 text-muted-foreground">{member.role}</td>
-                        <td className="px-6 py-4">
-                          <Badge variant="outline">{member.department}</Badge>
-                        </td>
-                        <td className="px-6 py-4 text-muted-foreground">{member.location}</td>
-                        <td className="px-6 py-4">
+            <h2 className="text-4xl font-bold text-center mb-16 text-foreground">Management Team</h2>
+            {loading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-4 text-muted-foreground">Loading management team...</p>
+              </div>
+            ) : managementTeam.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-muted-foreground">No management team members available at the moment.</p>
+              </div>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {managementTeam.map((member) => (
+                  <Card key={member.id} className="shadow-medium hover:shadow-strong transition-all transform hover:-translate-y-2">
+                    <CardContent className="p-6 text-center">
+                      {member.image ? (
+                        <img
+                          src={member.image.startsWith('http') ? member.image : `http://localhost:5000/uploads/managementTeam/${member.image}`}
+                          alt={member.name}
+                          className="w-24 h-24 object-cover rounded-full mx-auto mb-4 shadow-soft"
+                          onLoad={() => console.log('✅ Client: Management team image loaded:', member.name, member.image.startsWith('http') ? member.image : `http://localhost:5000/uploads/managementTeam/${member.image}`)}
+                          onError={(e) => {
+                            console.error('❌ Client: Management team image failed:', member.name, e.currentTarget.src);
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`${member.image ? 'hidden' : ''} w-24 h-24 rounded-full bg-gradient-to-br from-green-500 to-teal-600 flex items-center justify-center mx-auto mb-4 shadow-soft`}>
+                        <span className="text-white text-2xl font-bold">
+                          {member.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2 text-foreground">{member.name}</h3>
+                      <Badge variant="outline" className="mb-2">{member.position}</Badge>
+                      {member.expertise && (
+                        <p className="text-sm text-muted-foreground">{member.expertise}</p>
+                      )}
+                      {member.email && (
+                        <div className="mt-3 flex justify-center space-x-3">
                           <a
                             href={`mailto:${member.email}`}
                             className="text-primary hover:text-primary-light transition-colors"
                           >
                             <Mail className="w-4 h-4" />
                           </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          {member.linkedinUrl && (
+                            <a
+                              href={member.linkedinUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:text-primary-light transition-colors"
+                            >
+                              <Linkedin className="w-4 h-4" />
+                            </a>
+                          )}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-            </div>
+            )}
           </div>
         </section>
 

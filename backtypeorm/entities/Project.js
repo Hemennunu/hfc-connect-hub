@@ -41,11 +41,9 @@ const Project = new EntitySchema({
       nullable: false,
     },
     budget: {
-      type: 'decimal',
-      precision: 15,
-      scale: 2,
+      type: 'varchar',
+      length: 255,
       nullable: false,
-      default: 0,
     },
     fundingSource: {
       type: 'varchar',

@@ -344,6 +344,23 @@ const ManagementTeamList: React.FC<ManagementTeamListProps> = ({ refreshTrigger 
               ) : (
                 // Normal View
                 <div>
+                  {/* Profile Image */}
+                  <div className="flex justify-center mb-4">
+                    <div className="w-24 h-24">
+                      {member.image ? (
+                        <img
+                          src={member.image.startsWith('http') ? member.image : `http://localhost:5000/uploads/managementTeam/${member.image}`}
+                          alt={member.name}
+                          className="w-full h-full object-cover rounded-full shadow-medium"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-gradient-to-br from-green-500 to-teal-600 rounded-full flex items-center justify-center text-white font-semibold text-lg shadow-medium">
+                          {member.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* Name and Position */}
                   <div className="text-center mb-4">
                     <h3 className="text-xl font-bold text-gray-900 mb-2">{member.name}</h3>

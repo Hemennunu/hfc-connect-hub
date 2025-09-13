@@ -10,7 +10,7 @@ import ReadMore from '../components/ReadMore';
 const socket = io('http://localhost:5000');
 
 interface Alumni {
-  _id: string;
+  id: number;
   name: string;
   email: string;
   phone?: string;
@@ -72,7 +72,7 @@ const Alumni = () => {
       console.log('Socket: Alumni updated', updatedAlumni);
       if (updatedAlumni.consented && updatedAlumni.isPublic) {
         setAlumni(prev => prev.map(alumni => 
-          alumni._id === updatedAlumni._id ? updatedAlumni : alumni
+          alumni.id === updatedAlumni.id ? updatedAlumni : alumni
         ));
       }
     });
@@ -81,10 +81,10 @@ const Alumni = () => {
       console.log('Socket: Alumni approved', approvedAlumni);
       if (approvedAlumni.consented && approvedAlumni.isPublic) {
         setAlumni(prev => {
-          const exists = prev.find(alumni => alumni._id === approvedAlumni._id);
+          const exists = prev.find(alumni => alumni.id === approvedAlumni.id);
           if (exists) {
             return prev.map(alumni => 
-              alumni._id === approvedAlumni._id ? approvedAlumni : alumni
+              alumni.id === approvedAlumni.id ? approvedAlumni : alumni
             );
           } else {
             return [approvedAlumni, ...prev];
@@ -95,7 +95,7 @@ const Alumni = () => {
     
     socket.on('alumniDeleted', (deletedId: string) => {
       console.log('Socket: Alumni deleted', deletedId);
-      setAlumni(prev => prev.filter(alumni => alumni._id !== deletedId));
+      setAlumni(prev => prev.filter(alumni => alumni.id !== deletedId));
     });
 
     return () => {
@@ -287,7 +287,7 @@ const Alumni = () => {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                   {alumni.map((person) => (
                     <Card
-                      key={person._id}
+                      key={person.id}
                       className="shadow-lg hover:shadow-xl transition-all duration-500 transform hover:-translate-y-3 hover:scale-105 cursor-pointer overflow-hidden bg-white border-0 rounded-2xl"
                     >
                       {/* Profile Section with Circular Image */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { UserCheck, Upload } from 'lucide-react';
@@ -48,6 +48,24 @@ const ManagementTeamForm: React.FC<ManagementTeamFormProps> = ({ member, onSucce
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [useImageUrl, setUseImageUrl] = useState(!!member?.image);
+
+  useEffect(() => {
+    if (member) {
+      setFormData({
+        name: member.name || '',
+        position: member.position || '',
+        expertise: member.expertise || '',
+        bio: member.bio || '',
+        email: member.email || '',
+        phone: member.phone || '',
+        linkedinUrl: member.linkedinUrl || member.linkedin || '',
+        department: member.department || '',
+        image: member.image || '',
+        isActive: member.isActive ?? true,
+      });
+      setUseImageUrl(!!member.image);
+    }
+  }, [member]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -178,7 +196,7 @@ const ManagementTeamForm: React.FC<ManagementTeamFormProps> = ({ member, onSucce
   };
 
   return (
-    <div className="card p-6 md:p-8">
+    <div className={`card p-6 md:p-8 ${member ? 'bg-blue-50' : ''}`}>
       <div className="flex items-center mb-6">
         <div className="w-12 h-12 bg-gradient-primary rounded-xl flex items-center justify-center mr-4 shadow-glow">
           <UserCheck className="w-6 h-6 text-primary-foreground" />
@@ -200,7 +218,11 @@ const ManagementTeamForm: React.FC<ManagementTeamFormProps> = ({ member, onSucce
           <div className="w-32 h-32">
             {formData.image ? (
               <img
-                src={formData.image}
+                src={
+                  formData.image.startsWith('data:') || formData.image.startsWith('http')
+                    ? formData.image
+                    : `http://localhost:5000/uploads/managementTeam/${formData.image}`
+                }
                 alt="Profile preview"
                 className="w-full h-full object-cover rounded-full shadow-medium"
               />
@@ -212,7 +234,7 @@ const ManagementTeamForm: React.FC<ManagementTeamFormProps> = ({ member, onSucce
           </div>
         </div>
 
-        <div className="grid grid-cols-1 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Name */}
           <div className="space-y-3">
             <label className="block text-sm font-bold text-foreground">
@@ -268,7 +290,7 @@ const ManagementTeamForm: React.FC<ManagementTeamFormProps> = ({ member, onSucce
           </div>
 
           {/* Profile Image Upload */}
-          <div className="space-y-3">
+          <div className="space-y-3 md:col-span-2">
             <label className="block text-sm font-bold text-foreground">
               Profile Image
             </label>
@@ -383,7 +405,7 @@ const ManagementTeamForm: React.FC<ManagementTeamFormProps> = ({ member, onSucce
         )}
 
         {/* Form Actions */}
-        <div className="flex justify-end space-x-4">
+        <div className="flex justify-end space-x-4 md:col-span-2">
           {onCancel && (
             <button
               type="button"

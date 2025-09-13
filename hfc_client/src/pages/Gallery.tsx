@@ -11,12 +11,12 @@ import { io } from "socket.io-client";
 const socket = io("http://localhost:5000"); // Backend Socket.IO URL
 
 interface GalleryItem {
-  _id: string;
+  id: number;
   title: string;
   category: string;
   description: string;
   location?: string;
-  date: string;
+  dateTaken?: string;
   mediaUrl: string;
   mediaType: string;
   featured: boolean;
@@ -60,11 +60,11 @@ const Gallery = () => {
     const existingAlbum = albums.find(album => album.category === item.category);
     if (existingAlbum) {
       existingAlbum.images.push({
-        id: item._id,
+        id: item.id,
         title: item.title,
         location: item.location || "Ethiopia",
-        date: item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Recent",
-        mediaUrl: item.mediaUrl,
+        date: item.dateTaken ? new Date(item.dateTaken).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Recent",
+        mediaUrl: `http://localhost:5000/uploads/gallery/${item.mediaUrl}`,
         mediaType: item.mediaType,
         description: item.description
       });
@@ -73,11 +73,11 @@ const Gallery = () => {
         category: item.category,
         description: getCategoryDescription(item.category),
         images: [{
-          id: item._id,
+          id: item.id,
           title: item.title,
           location: item.location || "Ethiopia",
-          date: item.date ? new Date(item.date).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Recent",
-          mediaUrl: item.mediaUrl,
+          date: item.dateTaken ? new Date(item.dateTaken).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : "Recent",
+          mediaUrl: `http://localhost:5000/uploads/gallery/${item.mediaUrl}`,
           mediaType: item.mediaType,
           description: item.description
         }]

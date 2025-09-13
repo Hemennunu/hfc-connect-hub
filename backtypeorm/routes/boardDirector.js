@@ -17,7 +17,7 @@ if (!fs.existsSync(uploadDir)) {
 // Configure multer for profile image uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, 'uploads/boardDirectors/');
+    cb(null, uploadDir); // Use the full path
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -44,6 +44,7 @@ router.get('/', async (req, res) => {
     const boardDirectors = await boardDirectorRepository.find({
       order: { order: 'ASC' }
     });
+    console.log('Board Directors API Response:', JSON.stringify(boardDirectors, null, 2));
     res.json(boardDirectors);
   } catch (error) {
     console.error('Error fetching board directors:', error);

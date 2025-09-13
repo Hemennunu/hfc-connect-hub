@@ -62,7 +62,7 @@ const Footer = () => {
 
         <div className="border-t border-primary-foreground/20 mt-8 pt-8 text-center">
           <p className="text-primary-foreground/60 text-sm">
-            © 2024 HFC Foundation. All rights reserved. | Privacy Policy | Terms of Service
+            &copy; {new Date().getFullYear()} HFC Organization. All rights reserved. | Privacy Policy | Terms of Service
           </p>
         </div>
       </div>

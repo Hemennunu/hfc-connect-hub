@@ -63,7 +63,7 @@ router.post('/', auth, adminOnly, async (req, res) => {
       endDate: endDate ? new Date(endDate) : null,
       completedDate: completedDate ? new Date(completedDate) : null,
       beneficiaries,
-      budget: parseFloat(budget) || 0,
+      budget: budget || '',
       impact,
       status: status || 'ongoing',
       category,
@@ -99,7 +99,7 @@ router.put('/:id', auth, adminOnly, async (req, res) => {
       startDate: req.body.startDate ? new Date(req.body.startDate) : project.startDate,
       endDate: req.body.endDate ? new Date(req.body.endDate) : project.endDate,
       completedDate: req.body.completedDate ? new Date(req.body.completedDate) : project.completedDate,
-      budget: req.body.budget ? parseFloat(req.body.budget) : project.budget
+      budget: req.body.budget !== undefined ? req.body.budget : project.budget
     };
     
     await projectRepository.update(parseInt(req.params.id), updateData);
