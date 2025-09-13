@@ -73,17 +73,93 @@ const CaseStories: React.FC = () => {
 
   const featuredStories = stories.filter(story => story.featured);
 
+  const getMediaUrl = (url: string | undefined) => {
+    if (!url) return '';
+    // If URL already contains the full path or is a data URL, return as is
+    if (url.startsWith('http') || url.startsWith('data:')) return url;
+    // If URL starts with /uploads, prepend the base URL
+    if (url.startsWith('/uploads/')) return `http://localhost:5000${url}`;
+    // Otherwise, assume it's just a filename
+    return `http://localhost:5000/uploads/caseStories/${url}`;
+  };
+
   const renderMediaContent = (story: CaseStory) => {
-    if (!story.mediaUrl) return null;
+    // Handle text content (no media)
+    if (!story.mediaUrl) {
+      return (
+        <div className="bg-gray-50 p-6 h-64 overflow-y-auto">
+          <h3 className="text-lg font-semibold mb-2">{story.title}</h3>
+          <p className="text-gray-700 whitespace-pre-line">
+            {story.summary || story.content?.substring(0, 500) + (story.content?.length > 500 ? '...' : '')}
+          </p>
+        </div>
+      );
+    }
+
+    const mediaUrl = getMediaUrl(story.mediaUrl);
+    const thumbnailUrl = story.thumbnailUrl ? getMediaUrl(story.thumbnailUrl) : undefined;
+    
+    // Define document types and their corresponding icons and labels
+    const documentTypes = {
+      'pdf': { icon: '📄', label: 'PDF Document' },
+      'docx': { icon: '📝', label: 'Word Document' },
+      'doc': { icon: '📝', label: 'Word Document' },
+      'xlsx': { icon: '📊', label: 'Excel Spreadsheet' },
+      'xls': { icon: '📊', label: 'Excel Spreadsheet' },
+      'pptx': { icon: '📑', label: 'PowerPoint' },
+      'ppt': { icon: '📑', label: 'PowerPoint' },
+      'txt': { icon: '📄', label: 'Text File' },
+      'rtf': { icon: '📄', label: 'Rich Text' },
+      'csv': { icon: '📋', label: 'CSV File' }
+    };
+
+    // Get file extension
+    const fileExt = story.mediaUrl.split('.').pop()?.toLowerCase() || '';
+    const docType = documentTypes[fileExt as keyof typeof documentTypes];
+
+    // Handle document files
+    if (docType) {
+      return (
+        <div className="h-64 bg-gray-50 rounded-lg flex flex-col items-center justify-center p-4 border border-gray-200">
+          <div className="text-5xl mb-4">{docType.icon}</div>
+          <p className="text-center text-gray-600 mb-4">{docType.label}</p>
+          <div className="flex gap-2">
+            <a 
+              href={mediaUrl} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+            >
+              <span>View</span>
+              <span className="text-xs opacity-80">({fileExt.toUpperCase()})</span>
+            </a>
+            <a 
+              href={mediaUrl}
+              download
+              className="bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+            >
+              <span>Download</span>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      );
+    }
 
     switch (story.mediaType) {
       case 'photo':
       case 'photo_essay':
         return (
           <img
-            src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`}
+            src={mediaUrl}
             alt={story.title}
             className="w-full h-64 object-cover rounded-lg"
+            onError={(e) => {
+              // Fallback to a placeholder image if the image fails to load
+              e.currentTarget.src = 'https://via.placeholder.com/400x256?text=Image+Not+Available';
+            }}
           />
         );
       case 'video':
@@ -91,10 +167,10 @@ const CaseStories: React.FC = () => {
           <video
             controls
             className="w-full h-64 rounded-lg"
-            poster={story.thumbnailUrl ? `http://localhost:5000/uploads/caseStories/${story.thumbnailUrl}` : undefined}
+            poster={thumbnailUrl}
           >
-            <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="video/mp4" />
-            <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="video/webm" />
+            <source src={mediaUrl} type="video/mp4" />
+            <source src={mediaUrl} type="video/webm" />
             Your browser does not support the video tag.
           </video>
         );
@@ -102,14 +178,22 @@ const CaseStories: React.FC = () => {
         return (
           <div className="bg-gray-100 p-6 rounded-lg">
             <audio controls className="w-full">
-              <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="audio/mpeg" />
-              <source src={`http://localhost:5000/uploads/caseStories/${story.mediaUrl}`} type="audio/wav" />
+              <source src={mediaUrl} type="audio/mpeg" />
+              <source src={mediaUrl} type="audio/wav" />
               Your browser does not support the audio element.
             </audio>
           </div>
         );
+      case 'text':
       default:
-        return null;
+        return (
+          <div className="bg-gray-50 p-6 h-64 overflow-y-auto">
+            <h3 className="text-lg font-semibold mb-2">{story.title}</h3>
+            <p className="text-gray-700 whitespace-pre-line">
+              {story.summary || story.content?.substring(0, 500) + (story.content?.length > 500 ? '...' : '')}
+            </p>
+          </div>
+        );
     }
   };
 

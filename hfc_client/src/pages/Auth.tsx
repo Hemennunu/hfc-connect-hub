@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { InputWithIcon } from "@/components/ui/input-with-icon";
+import { Mail, Key, User } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -86,24 +87,26 @@ const Auth = () => {
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
-                    <Input
+                    <InputWithIcon
                       id="email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="Enter your email"
+                      icon={<Mail className="h-4 w-4" />}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="password">Password</Label>
-                    <Input
+                    <InputWithIcon
                       id="password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="Enter your password"
+                      icon={<Key className="h-4 w-4" />}
                     />
                   </div>
                   {error && (
@@ -121,36 +124,38 @@ const Auth = () => {
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="fullName">Full Name</Label>
-                    <Input
+                    <InputWithIcon
                       id="fullName"
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
                       placeholder="Enter your full name"
+                      icon={<User className="h-4 w-4" />}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="email-signup">Email</Label>
-                    <Input
-                      id="email-signup"
+                    <Label htmlFor="signup-email">Email</Label>
+                    <InputWithIcon
+                      id="signup-email"
                       type="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       required
                       placeholder="Enter your email"
+                      icon={<Mail className="h-4 w-4" />}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="password-signup">Password</Label>
-                    <Input
-                      id="password-signup"
+                    <Label htmlFor="signup-password">Password</Label>
+                    <InputWithIcon
+                      id="signup-password"
                       type="password"
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       required
                       placeholder="Create a password"
-                      minLength={6}
+                      icon={<Key className="h-4 w-4" />}
                     />
                   </div>
                   {error && (

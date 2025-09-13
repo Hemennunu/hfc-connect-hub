@@ -93,7 +93,16 @@ router.post('/', auth, adminOnly, upload.single('media'), async (req, res) => {
     }
     
     const mediaUrl = req.file ? `/uploads/caseStories/${req.file.filename}` : null;
-    const mediaType = req.file ? (req.file.mimetype && req.file.mimetype.startsWith('video/') ? 'video' : 'image') : 'image';
+    let mediaType = 'text';
+    if (req.file) {
+      if (req.file.mimetype.startsWith('video/')) {
+        mediaType = 'video';
+      } else if (req.file.mimetype.startsWith('image/')) {
+        mediaType = 'photo';
+      } else if (req.file.mimetype.startsWith('audio/')) {
+        mediaType = 'audio';
+      }
+    }
 
     // Handle tags: convert string to array if needed
     let processedTags = null;
@@ -177,7 +186,14 @@ router.put('/:id', auth, adminOnly, upload.single('media'), async (req, res) => 
     // If new media uploaded, update media fields
     if (req.file) {
       updateData.mediaUrl = `/uploads/caseStories/${req.file.filename}`;
-      updateData.mediaType = req.file.mimetype.startsWith('video/') ? 'video' : 'image';
+      updateData.mediaType = 'text';
+      if (req.file.mimetype.startsWith('video/')) {
+        updateData.mediaType = 'video';
+      } else if (req.file.mimetype.startsWith('image/')) {
+        updateData.mediaType = 'photo';
+      } else if (req.file.mimetype.startsWith('audio/')) {
+        updateData.mediaType = 'audio';
+      }
     }
     
     await caseStoryRepository.update(req.params.id, updateData);
