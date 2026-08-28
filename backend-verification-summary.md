@@ -1,5 +1,9 @@
 # Backend Functionality Verification Summary
 
+> Historical internal note: this is a local verification summary from an earlier implementation pass. It is not the canonical architecture for the repo. For the current stack and structure, see [README.md](README.md).
+>
+> Current architecture: React + TypeScript frontend, Node.js + Express + TypeORM + MySQL backend.
+
 ## ✅ Completed Tasks
 
 ### 1. Backend Route Analysis

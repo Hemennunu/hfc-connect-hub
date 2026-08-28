@@ -1,5 +1,9 @@
 # Backend Comparison: TypeORM vs Mongoose
 
+> Historical internal note: this file documents an older comparison exercise and is not the current project source of truth. For the authoritative repo summary, see [README.md](README.md).
+>
+> Current architecture: React + TypeScript frontend, Node.js + Express + TypeORM + MySQL backend.
+
 ## 📊 Overall Functionality Comparison
 
 ### ✅ **BOTH BACKENDS HAVE EQUIVALENT FUNCTIONALITY**

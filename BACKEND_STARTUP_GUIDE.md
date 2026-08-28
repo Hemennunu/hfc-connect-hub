@@ -1,5 +1,9 @@
 # Backend Server Startup Guide
 
+> Historical internal note: this document reflects a previous integration/debugging workflow and is not the canonical project architecture. For the current repo structure and stack, see [README.md](README.md).
+>
+> Current architecture: React + TypeScript frontend, Node.js + Express + TypeORM + MySQL backend.
+
 ## Quick Start Commands
 
 ### 1. Start Backend Server (Required)

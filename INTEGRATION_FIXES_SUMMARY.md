@@ -1,5 +1,9 @@
 # Frontend-Backend Integration Fixes Summary
 
+> Historical internal note: this document captures an earlier integration effort and should not be treated as the repo’s current architecture or onboarding guide. For the active project summary, see [README.md](README.md).
+>
+> Current architecture: React + TypeScript frontend, Node.js + Express + TypeORM + MySQL backend.
+
 ## Issues Identified and Fixed
 
 ### 1. **Stats Management Integration Issues**
