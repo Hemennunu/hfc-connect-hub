@@ -1,10 +1,13 @@
-# HFC Backend - TypeORM with MySQL
+# HFC Backend - Node.js + TypeORM with MySQL
 
-This is the TypeORM-based backend for the Hope for Children (HFC) organization, converted from the original Mongoose implementation to use MySQL with TypeORM.
+This is the Node.js backend for the Hope for Children (HFC) organization, built with Express and TypeORM to work with a MySQL database.
+
+> Note: this backend is implemented in JavaScript/Node.js, not TypeScript.
 
 ## Features
 
-- **TypeORM with MySQL**: Modern ORM with MySQL database
+- **Node.js + Express**: API server runtime and routing
+- **TypeORM with MySQL**: ORM-based database access
 - **JWT Authentication**: Secure authentication with role-based access
 - **Socket.IO**: Real-time communication support
 - **RESTful APIs**: Complete CRUD operations for all entities
@@ -19,21 +22,25 @@ This is the TypeORM-based backend for the Hope for Children (HFC) organization, 
 ## Installation
 
 1. **Clone and navigate to the project**
+
    ```bash
    cd "back typeorm"
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Set up environment variables**
+
    ```bash
    cp .env.example .env
    ```
-   
+
    Edit the `.env` file with your configuration:
+
    ```env
    # Database Configuration
    DB_HOST=localhost
@@ -51,11 +58,13 @@ This is the TypeORM-based backend for the Hope for Children (HFC) organization, 
    ```
 
 4. **Create MySQL Database**
+
    ```sql
    CREATE DATABASE hfc_database;
    ```
 
 5. **Start the server**
+
    ```bash
    # Development mode with auto-restart
    npm run dev
@@ -85,6 +94,7 @@ The application will automatically create the following tables:
 ## API Endpoints
 
 ### Authentication
+
 - `POST /api/auth/signin` - Admin login
 - `POST /api/auth/signup` - User registration
 - `POST /api/auth/create-admin` - Create admin user (admin only)
@@ -92,12 +102,14 @@ The application will automatically create the following tables:
 - `DELETE /api/auth/admin/:id` - Delete admin (admin only)
 
 ### Staff Management
+
 - `GET /api/staff` - Get all staff (public)
 - `POST /api/staff` - Create staff member (admin only)
 - `PUT /api/staff/:id` - Update staff member (admin only)
 - `DELETE /api/staff/:id` - Delete staff member (admin only)
 
 ### Statistics
+
 - `GET /api/stats` - Get all statistics
 - `GET /api/stats/active` - Get active statistics only
 - `POST /api/stats` - Create statistic (admin only)
@@ -107,6 +119,7 @@ The application will automatically create the following tables:
 - `POST /api/stats/reorder` - Reorder statistics (admin only)
 
 ### Alumni
+
 - `GET /api/alumni` - Get public alumni
 - `GET /api/alumni/all` - Get all alumni (admin only)
 - `POST /api/alumni` - Create alumni (admin only)
@@ -114,18 +127,21 @@ The application will automatically create the following tables:
 - `DELETE /api/alumni/:id` - Delete alumni (admin only)
 
 ### News
+
 - `GET /api/news` - Get all news
 - `POST /api/news` - Create news (admin only)
 - `PUT /api/news/:id` - Update news (admin only)
 - `DELETE /api/news/:id` - Delete news (admin only)
 
 ### Projects
+
 - `GET /api/projects` - Get all projects
 - `POST /api/projects` - Create project (admin only)
 - `PUT /api/projects/:id` - Update project (admin only)
 - `DELETE /api/projects/:id` - Delete project (admin only)
 
 ### Reports
+
 - `GET /api/reports` - Get published reports
 - `GET /api/reports/all` - Get all reports (admin only)
 - `POST /api/reports` - Create report (admin only)
@@ -133,6 +149,7 @@ The application will automatically create the following tables:
 - `DELETE /api/reports/:id` - Delete report (admin only)
 
 ### Gallery
+
 - `GET /api/gallery` - Get published gallery items
 - `GET /api/gallery/all` - Get all gallery items (admin only)
 - `POST /api/gallery` - Create gallery item (admin only)
@@ -140,6 +157,7 @@ The application will automatically create the following tables:
 - `DELETE /api/gallery/:id` - Delete gallery item (admin only)
 
 ### Case Stories
+
 - `GET /api/case-stories` - Get published case stories
 - `GET /api/case-stories/all` - Get all case stories (admin only)
 - `POST /api/case-stories` - Create case story (admin only)
@@ -147,12 +165,14 @@ The application will automatically create the following tables:
 - `DELETE /api/case-stories/:id` - Delete case story (admin only)
 
 ### Board Directors
+
 - `GET /api/board-directors` - Get all board directors
 - `POST /api/board-directors` - Create board director (admin only)
 - `PUT /api/board-directors/:id` - Update board director (admin only)
 - `DELETE /api/board-directors/:id` - Delete board director (admin only)
 
 ### Management Team
+
 - `GET /api/management-team` - Get active management team
 - `GET /api/management-team/all` - Get all management team (admin only)
 - `POST /api/management-team` - Create management member (admin only)
@@ -172,6 +192,7 @@ This backend has been converted from the original Mongoose implementation. Key c
 ## Development
 
 ### Project Structure
+
 ```
 back typeorm/
 ├── config/
@@ -212,6 +233,7 @@ back typeorm/
 ## Socket.IO Events
 
 The application emits the following Socket.IO events:
+
 - `staffUpdated` - When staff data changes
 - Add other events as needed for real-time updates
 

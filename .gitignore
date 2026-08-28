@@ -1,1 +1,15 @@
-/back
+# Dependencies
+**/node_modules/
+
+# Environment files
+**/.env
+**/.env.*
+!**/.env.example
+
+# Build output
+**/dist/
+**/build/
+
+# OS/editor files
+.DS_Store
+Thumbs.db
